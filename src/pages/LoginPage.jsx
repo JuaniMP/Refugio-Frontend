@@ -1,33 +1,70 @@
 import {
-  Box,
-  Button,
-  FormControl,
-  FormLabel,
-  Input,
-  VStack,
-  Heading,
-  Text,
-  Link as ChakraLink,
+  Box, Button, FormControl, FormLabel, Input, VStack, Heading, Text,
+  Link as ChakraLink, useToast,
 } from '@chakra-ui/react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
+import { useAuth } from '../context/AuthContext'; // <-- 1. Importar useAuth
 
 const LoginPage = () => {
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-  });
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  
+  const toast = useToast();
+  const navigate = useNavigate();
+  const auth = useAuth(); // <-- 2. Obtener el contexto
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Datos de login:', formData);
+    setIsLoading(true);
+
+    const payload = {
+      login: email,
+      clave: password,
+    };
+
+    try {
+      const response = await fetch('http://localhost:8181/api/usuarios/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Error al iniciar sesión');
+      }
+
+      // --- 3. CAMBIO PRINCIPAL ---
+      // Guardamos el token y rol usando el contexto
+      auth.login(data.token, data.rol);
+      // --------------------------
+
+      toast({
+        title: 'Inicio de sesión exitoso',
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      });
+
+      navigate('/'); 
+
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: error.message,
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
+  // ... (el resto del return es igual, no necesita cambios)
   return (
     <Box bg="brand.100" p={8} borderRadius="md" maxW="md" mx="auto" mt={10}>
       <Heading as="h2" size="xl" mb={6} textAlign="center" color="brand.900">
@@ -37,13 +74,31 @@ const LoginPage = () => {
         <VStack spacing={4}>
           <FormControl isRequired>
             <FormLabel color="brand.800">Correo Electrónico</FormLabel>
-            <Input name="email" onChange={handleChange} />
+            <Input 
+              type="email"
+              name="email" 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)} 
+            />
           </FormControl>
           <FormControl isRequired>
             <FormLabel color="brand.800">Contraseña</FormLabel>
-            <Input type="password" name="password" onChange={handleChange} />
+            <Input 
+              type="password" 
+              name="password" 
+              value={password}
+              onChange={(e) => setPassword(e.target.value)} 
+            />
           </FormControl>
-          <Button type="submit" bg="brand.800" color="white" size="lg" width="full" _hover={{ bg: 'brand.900' }}>
+          <Button 
+            type="submit" 
+            bg="brand.800" 
+            color="white" 
+            size="lg" 
+            width="full" 
+            _hover={{ bg: 'brand.900' }}
+            isLoading={isLoading}
+          >
             Iniciar Sesión
           </Button>
         </VStack>
