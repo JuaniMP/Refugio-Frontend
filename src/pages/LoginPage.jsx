@@ -4,7 +4,7 @@ import {
 } from '@chakra-ui/react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
-import { useAuth } from '../context/AuthContext'; // <-- 1. Importar useAuth
+import { useAuth } from '../context/AuthContext';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -13,7 +13,7 @@ const LoginPage = () => {
   
   const toast = useToast();
   const navigate = useNavigate();
-  const auth = useAuth(); // <-- 2. Obtener el contexto
+  const auth = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -37,10 +37,7 @@ const LoginPage = () => {
         throw new Error(data.message || 'Error al iniciar sesión');
       }
 
-      // --- 3. CAMBIO PRINCIPAL ---
-      // Guardamos el token y rol usando el contexto
       auth.login(data.token, data.rol);
-      // --------------------------
 
       toast({
         title: 'Inicio de sesión exitoso',
@@ -49,7 +46,14 @@ const LoginPage = () => {
         isClosable: true,
       });
 
-      navigate('/'); 
+      // --- CAMBIO AQUÍ ---
+      // Si el rol es 'AD', va a /admin. Si no, va a /
+      if (data.rol === 'AD') {
+        navigate('/admin');
+      } else {
+        navigate('/'); 
+      }
+      // --- FIN DEL CAMBIO ---
 
     } catch (error) {
       toast({
@@ -64,7 +68,7 @@ const LoginPage = () => {
     }
   };
 
-  // ... (el resto del return es igual, no necesita cambios)
+  // ... (el return no cambia) ...
   return (
     <Box bg="brand.100" p={8} borderRadius="md" maxW="md" mx="auto" mt={10}>
       <Heading as="h2" size="xl" mb={6} textAlign="center" color="brand.900">
