@@ -35,7 +35,7 @@ const LoginPage = () => {
 
       if (!response.ok) {
         
-        // --- 1. LÓGICA DE INTERCEPTACIÓN (CUENTAS DE EMPLEADO) ---
+        // --- Lógica de Interceptación (Empleados) ---
         if (data.error === 'FORCE_RESET') {
             toast({
                 title: 'Cambio de contraseña requerido',
@@ -43,13 +43,12 @@ const LoginPage = () => {
                 status: 'info',
                 duration: 7000,
             });
-            // Guardamos el token (para estar autenticado) y redirigimos
-            auth.login(data.token, data.rol); // Asumiendo que el backend envía token y rol
+            auth.login(data.token, data.rol); 
             navigate('/force-reset-password');
             return;
         }
         
-        // --- 2. LÓGICA DE INTERCEPTACIÓN (CUENTAS DE ADOPTANTE) ---
+        // --- Lógica de Interceptación (Adoptantes) ---
         if (data.error === 'ACCOUNT_INACTIVE') {
           toast({
             title: 'Cuenta Inactiva',
@@ -60,7 +59,6 @@ const LoginPage = () => {
           navigate('/verificar-cuenta', { state: { email: email } });
           return;
         }
-        // --- FIN DE LÓGICA ---
         
         throw new Error(data.message || 'Error al iniciar sesión');
       }
@@ -73,11 +71,19 @@ const LoginPage = () => {
         status: 'success',
       });
 
+      // --- ⬇️ AQUÍ ESTÁ LA MODIFICACIÓN ⬇️ ---
       if (data.rol === 'AD') {
         navigate('/admin');
+      } else if (data.rol === 'C') {
+        navigate('/cuidador'); // <-- Redirige a la nueva ruta
+      } else if (data.rol === 'V') {
+        // (Ruta futura para veterinario)
+        navigate('/'); // Por ahora al inicio
       } else {
+        // Rol 'AP' (Adoptante) o sin rol
         navigate('/'); 
       }
+      // --- ⬆️ FIN DE LA MODIFICACIÓN ⬆️ ---
 
     } catch (error) {
       toast({

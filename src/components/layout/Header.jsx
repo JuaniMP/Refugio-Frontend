@@ -19,7 +19,8 @@ const Header = () => {
     <Box as="header" bg="brand.800" p={4} color="white">
       <Flex align="center">
         <Box>
-          <Link to={userRol === 'AD' ? '/admin' : '/'}>
+          {/* --- MODIFICADO: Ahora el link depende del rol --- */}
+          <Link to={userRol === 'AD' ? '/admin' : (userRol === 'C' ? '/cuidador' : '/')}>
             <Image 
               src={logoBanner} 
               alt="Logo Bigotes Felizes" 
@@ -35,7 +36,6 @@ const Header = () => {
             <HStack spacing={4}>
               
               {/* --- Botón "Vista Adoptante" (SOLO ADMIN) --- */}
-              {/* CONDICIÓN CORREGIDA: Solo se muestra si es Admin Y está en una ruta /admin */}
               {userRol === 'AD' && currentPath.startsWith('/admin') && (
                 <Button 
                   as={Link}
@@ -71,11 +71,14 @@ const Header = () => {
                     </MenuItem>
                   )}
                   
-                  {userRol !== 'AD' && (
+                  {/* --- ⬇️ AQUÍ ESTÁ EL CAMBIO IMPORTANTE ⬇️ --- */}
+                  {/* Ahora "Mi Perfil" solo lo ve el Adoptante ('AP') */}
+                  {userRol === 'AP' && (
                      <MenuItem as={Link} to="/perfil">
                        Mi Perfil
                      </MenuItem>
                   )}
+                  {/* --- ⬆️ FIN DEL CAMBIO ⬆️ --- */}
 
                   <MenuItem onClick={logout}>
                     Cerrar Sesión

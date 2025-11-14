@@ -4,7 +4,7 @@ import {
 } from '@chakra-ui/react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext'; // Importamos useAuth
+import { useAuth } from '../context/AuthContext'; 
 
 const ForceResetPasswordPage = () => {
   const [password, setPassword] = useState('');
@@ -13,7 +13,9 @@ const ForceResetPasswordPage = () => {
   const [passwordStrength, setPasswordStrength] = useState({ value: 0, color: 'red' });
   const toast = useToast();
   const navigate = useNavigate();
-  const { token } = useAuth(); // Necesitamos el token que se guardó en el login
+  
+  // --- 1. OBTENER EL ROL Y EL TOKEN ---
+  const { token, userRol } = useAuth(); 
 
   const handlePasswordChange = (e) => {
     const pass = e.target.value;
@@ -36,18 +38,9 @@ const ForceResetPasswordPage = () => {
     
     setIsLoading(true);
 
-    // Este endpoint de "reset-password" funciona porque el backend
-    // no requiere un 'código' si la contraseña actual es la temporal
-    // (Ajuste: Modificaremos el endpoint /reset-password para que acepte un token)
-    
-    // ***NECESITAMOS UN NUEVO ENDPOINT EN EL BACKEND***
-    // (Por ahora, asumiremos que /reset-password puede ser modificado
-    // para aceptar un token en lugar de un código)
-    
-    // ***ACTUALIZACIÓN***: Usaremos el endpoint /save de Usuario para cambiar la clave
-    
     try {
-      const response = await fetch('http://localhost:8181/api/usuarios/force-reset-password', { // Endpoint ficticio (ver Nota 1)
+      // Usamos el endpoint que ya existe en el backend
+      const response = await fetch('http://localhost:8181/api/usuarios/force-reset-password', { 
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -68,8 +61,18 @@ const ForceResetPasswordPage = () => {
         status: 'success',
       });
       
-      // Como ya está logueado, solo redirige a /admin
-      navigate('/admin'); 
+      // --- 2. ⬇️ AQUÍ ESTÁ LA MODIFICACIÓN ⬇️ ---
+      // Redirigir según el rol que ya tenemos guardado
+      if (userRol === 'AD') {
+        navigate('/admin');
+      } else if (userRol === 'C') {
+        navigate('/cuidador'); // <-- Redirige a la nueva ruta
+      } else if (userRol === 'V') {
+        navigate('/'); // (Ruta futura para veterinario)
+      } else {
+        navigate('/');
+      }
+      // --- 2. ⬆️ FIN DE LA MODIFICACIÓN ⬆️ ---
 
     } catch (error) {
       toast({

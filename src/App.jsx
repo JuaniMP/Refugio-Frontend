@@ -9,9 +9,12 @@ import AdminDashboardPage from './pages/AdminDashboardPage';
 import VerifyAccountPage from './pages/VerifyAccountPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
-
-// --- 1. Importar la nueva página ---
 import ForceResetPasswordPage from './pages/ForceResetPasswordPage';
+
+// --- 1. IMPORTAR LO NUEVO ---
+import CuidadorRoute from './components/auth/CuidadorRoute';
+import CuidadorDashboardPage from './pages/CuidadorDashboardPage';
+
 
 function App() {
   return (
@@ -25,12 +28,23 @@ function App() {
         <Route path="/olvide-contrasena" element={<ForgotPasswordPage />} />
         <Route path="/resetear-contrasena" element={<ResetPasswordPage />} />
         
-        {/* --- 2. AÑADIR LA NUEVA RUTA (Es privada pero no requiere rol) --- */}
+        {/* Rutas Privadas (para empleados) */}
         <Route path="/force-reset-password" element={<ForceResetPasswordPage />} />
         
-        {/* Rutas Privadas */}
+        {/* Rutas Privadas (para adoptantes) */}
         <Route path="/perfil" element={<ProfilePage />} />
 
+        {/* --- 2. AÑADIR LA NUEVA RUTA DE CUIDADOR --- */}
+        <Route 
+          path="/cuidador" 
+          element={
+            <CuidadorRoute>
+              <CuidadorDashboardPage />
+            </CuidadorRoute>
+          } 
+        />
+        {/* (Aquí podrías añadir una /veterinario en el futuro) */}
+        
         {/* Ruta de Administrador */}
         <Route 
           path="/admin" 
