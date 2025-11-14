@@ -34,30 +34,43 @@ const LoginPage = () => {
       const data = await response.json();
 
       if (!response.ok) {
-        // --- 3. LÓGICA DE INTERCEPTACIÓN DE CUENTA INACTIVA ---
+        
+        // --- 1. LÓGICA DE INTERCEPTACIÓN (CUENTAS DE EMPLEADO) ---
+        if (data.error === 'FORCE_RESET') {
+            toast({
+                title: 'Cambio de contraseña requerido',
+                description: 'Es tu primer inicio de sesión. Debes cambiar tu contraseña temporal.',
+                status: 'info',
+                duration: 7000,
+            });
+            // Guardamos el token (para estar autenticado) y redirigimos
+            auth.login(data.token, data.rol); // Asumiendo que el backend envía token y rol
+            navigate('/force-reset-password');
+            return;
+        }
+        
+        // --- 2. LÓGICA DE INTERCEPTACIÓN (CUENTAS DE ADOPTANTE) ---
         if (data.error === 'ACCOUNT_INACTIVE') {
           toast({
             title: 'Cuenta Inactiva',
-            description: 'Tu cuenta está inactiva. Revisa tu email para el código de verificación.',
+            description: 'Tu cuenta está inactiva. Por favor, revisa tu email y verifica tu cuenta.',
             status: 'warning',
             duration: 7000,
           });
-          // Redirigir a la página de verificación, pasando el email
           navigate('/verificar-cuenta', { state: { email: email } });
           return;
         }
-        // --- FIN LÓGICA DE INTERCEPTACIÓN ---
+        // --- FIN DE LÓGICA ---
         
         throw new Error(data.message || 'Error al iniciar sesión');
       }
 
+      // --- LOGIN NORMAL ---
       auth.login(data.token, data.rol);
 
       toast({
         title: 'Inicio de sesión exitoso',
         status: 'success',
-        duration: 3000,
-        isClosable: true,
       });
 
       if (data.rol === 'AD') {
@@ -71,8 +84,6 @@ const LoginPage = () => {
         title: 'Error',
         description: error.message,
         status: 'error',
-        duration: 5000,
-        isClosable: true,
       });
     } finally {
       setIsLoading(false);
@@ -124,13 +135,11 @@ const LoginPage = () => {
         </ChakraLink>
       </Text>
       
-      {/* --- 4. ARREGLO DEL ENLACE OLVIDADO --- */}
       <Text mt={2} textAlign="center">
         <ChakraLink as={Link} to="/olvide-contrasena" color="brand.800">
           ¿Olvidaste tu contraseña?
         </ChakraLink>
       </Text>
-      {/* --- FIN ARREGLO --- */}
     </Box>
   );
 };

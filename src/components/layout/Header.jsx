@@ -35,20 +35,19 @@ const Header = () => {
             <HStack spacing={4}>
               
               {/* --- Botón "Vista Adoptante" (SOLO ADMIN) --- */}
-              {userRol === 'AD' && (
+              {/* CONDICIÓN CORREGIDA: Solo se muestra si es Admin Y está en una ruta /admin */}
+              {userRol === 'AD' && currentPath.startsWith('/admin') && (
                 <Button 
                   as={Link}
                   to="/"
                   leftIcon={<FiEye />}
                   size="sm"
                   variant="outline"
-                  // --- CAMBIO AQUÍ ---
-                  color="brand.200" // Texto e Icono color CREMA
-                  // --- FIN DEL CAMBIO ---
-                  borderColor="brand.200" // Borde color CREMA
+                  color="brand.200" 
+                  borderColor="brand.200"
                   _hover={{ 
-                    bg: "brand.200", // Fondo Crema al pasar el mouse
-                    color: "brand.900" // Texto Café al pasar el mouse
+                    bg: "brand.200", 
+                    color: "brand.900"
                   }}
                 >
                   Vista Adoptante
