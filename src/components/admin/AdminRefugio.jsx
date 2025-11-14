@@ -2,7 +2,7 @@ import {
   Box, Button, useToast, VStack, SimpleGrid, Spinner, Text,
   Heading, FormControl, FormLabel, Input,
   HStack, List, ListItem, IconButton, Alert, AlertIcon,
-  Switch // <-- 1. Importar Switch
+  Switch 
 } from '@chakra-ui/react';
 import { AddIcon } from '@chakra-ui/icons';
 import { useState, useEffect } from 'react';
@@ -19,6 +19,10 @@ const AdminRefugio = () => {
   const [telefonos, setTelefonos] = useState([]);
   const [newTelefono, setNewTelefono] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+
+  // ... (fetchData, handleSaveRefugio, handleAddTelefono, 
+  //      handleToggleTelefono, y handleRefugioChange 
+  //      permanecen SIN CAMBIOS) ...
 
   // --- Cargar datos (Sin cambios) ---
   const fetchData = async () => {
@@ -85,7 +89,7 @@ const AdminRefugio = () => {
     const payload = {
       idRefugio: refugio.idRefugio,
       telefono: newTelefono,
-      estado: 'ACTIVO' // Asegurarse de crearlo como ACTIVO
+      estado: 'ACTIVO'
     };
     try {
       await fetch('http://localhost:8181/api/telefonos-refugio/save', {
@@ -104,9 +108,8 @@ const AdminRefugio = () => {
     }
   };
 
-  // --- 2. CAMBIO: de "Eliminar" a "Activar/Desactivar" ---
+  // --- Activar/Desactivar Teléfono (Sin cambios) ---
   const handleToggleTelefono = async (telefono) => {
-    // Invertir el estado
     const nuevoEstado = telefono.estado === 'ACTIVO' ? 'INACTIVO' : 'ACTIVO';
     const payload = {
       ...telefono,
@@ -114,7 +117,6 @@ const AdminRefugio = () => {
     };
     
     try {
-      // Usamos 'save' para actualizar el estado, no 'delete'
       const response = await fetch('http://localhost:8181/api/telefonos-refugio/save', {
         method: 'POST',
         headers: {
@@ -126,7 +128,7 @@ const AdminRefugio = () => {
       if (!response.ok) throw new Error('No se pudo actualizar el estado.');
       
       toast({ title: `Teléfono ${nuevoEstado.toLowerCase()}`, status: 'success' });
-      fetchData(); // Recargar lista
+      fetchData(); 
     } catch (error) {
       toast({ title: error.message, status: 'error' });
     }
@@ -137,6 +139,7 @@ const AdminRefugio = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+
   if (isLoading) {
     return <Spinner size="xl" mx="auto" mt={10} />;
   }
@@ -144,9 +147,8 @@ const AdminRefugio = () => {
   return (
     <SimpleGrid columns={{ base: 1, md: 2 }} spacing={10}>
       
-      {/* Columna 1: Info Refugio (Sin cambios) */}
+      {/* Columna 1: Info Refugio */}
       <VStack spacing={4} align="stretch">
-         {/* ... (Todo el VStack de Información General es igual) ... */}
          <Heading size="lg" color="brand.900">
           {refugio ? 'Editar Información General' : 'Crear Refugio'}
         </Heading>
@@ -168,7 +170,14 @@ const AdminRefugio = () => {
           <FormLabel>Responsable</FormLabel>
           <Input name="responsable" value={formData.responsable} onChange={handleRefugioChange} bg="white" />
         </FormControl>
-        <Button colorScheme="blue" onClick={handleSaveRefugio}>
+
+        {/* --- CAMBIO DE ESTILO 1 --- */}
+        <Button 
+          bg="brand.800"
+          color="white"
+          _hover={{ bg: 'brand.900' }}
+          onClick={handleSaveRefugio}
+        >
           {refugio ? 'Actualizar Información' : 'Crear Refugio'}
         </Button>
       </VStack>
@@ -184,7 +193,6 @@ const AdminRefugio = () => {
           </Alert>
         ) : (
           <>
-            {/* Formulario añadir (Sin cambios) */}
             <HStack>
               <FormControl>
                 <FormLabel>Añadir nuevo teléfono</FormLabel>
@@ -195,16 +203,20 @@ const AdminRefugio = () => {
                   bg="white"
                 />
               </FormControl>
+
+              {/* --- CAMBIO DE ESTILO 2 --- */}
               <IconButton 
                 icon={<AddIcon />} 
-                colorScheme="green"
+                bg="brand.800"
+                color="white"
+                _hover={{ bg: 'brand.900' }}
                 aria-label="Añadir teléfono"
                 onClick={handleAddTelefono}
                 alignSelf="flex-end"
               />
             </HStack>
 
-            {/* --- 3. CAMBIO: Lista de teléfonos con Switch --- */}
+            {/* Lista de teléfonos (Sin cambios, el Switch verde ya es consistente) */}
             <Heading size="md" color="brand.800" mt={6}>Gestionar Teléfonos</Heading>
             <List spacing={3} w="100%">
               {telefonos.map((tel) => (
