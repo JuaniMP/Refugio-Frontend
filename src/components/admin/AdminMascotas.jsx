@@ -1,71 +1,73 @@
 import {
   Box, Button, useToast, Table, Thead, Tbody, Tr, Th, Td, IconButton,
-  Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody, ModalCloseButton,
-  useDisclosure, FormControl, FormLabel, Input, Select, VStack, Spinner, Text,
+  FormControl, FormLabel, Input, Select, VStack, Spinner, Text,
   HStack,
   SimpleGrid,
-  Heading
+  Heading,
+  Image 
 } from '@chakra-ui/react';
 import { AddIcon, EditIcon, CheckIcon, CloseIcon } from '@chakra-ui/icons';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 
+// Función: Formateador de Edad
+const formatEdad = (meses) => {
+  if (!meses || meses <= 0) return 'N/A';
+  if (meses < 12) return `${meses} ${meses === 1 ? 'mes' : 'meses'}`;
+  const anios = Math.floor(meses / 12);
+  const mesesRestantes = meses % 12;
+  if (mesesRestantes === 0) return `${anios} ${anios === 1 ? 'año' : 'años'}`;
+  return `${anios} ${anios === 1 ? 'año' : 'años'} y ${mesesRestantes} ${mesesRestantes === 1 ? 'mes' : 'meses'}`;
+};
+
+
 const AdminMascotas = () => {
   const { token } = useAuth();
   const toast = useToast();
-  const { isOpen, onOpen, onClose } = useDisclosure(); 
   
   const [mascotas, setMascotas] = useState([]);
   const [razas, setRazas] = useState([]);
   const [refugios, setRefugios] = useState([]);
-  
-  // --- CAMBIO 1: Añadir estado para Especies ---
   const [especies, setEspecies] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   
   const [isCreating, setIsCreating] = useState(false);
-  const [currentMascota, setCurrentMascota] = useState(null); 
+  const [editingId, setEditingId] = useState(null); 
   
-  // --- CAMBIO 2: Añadir estados para el filtro ---
   const [selectedEspecieId, setSelectedEspecieId] = useState('');
   const [filteredRazas, setFilteredRazas] = useState([]);
 
+  const [ageUnit, setAgeUnit] = useState('meses');
+  const [ageValue, setAgeValue] = useState(0);
+
+  const monthOptions = Array.from({ length: 12 }, (_, i) => i + 1); 
+  const yearOptions = Array.from({ length: 30 }, (_, i) => i + 1); 
+
   const [formData, setFormData] = useState({
-    nombre: '',
-    sexo: '',
-    edadMeses: 0,
-    estado: '',
-    img: '',
-    idRaza: '',
-    idRefugio: ''
+    nombre: '', sexo: '', edadMeses: 0, estado: '',
+    img: '', idRaza: '', idRefugio: ''
   });
 
-  // --- CAMBIO 3: Cargar Especies además de lo demás ---
+  // --- LÓGICA DE CARGA DE DATOS ---
   const fetchData = async () => {
     setIsLoading(true);
     try {
       const headers = { 'Authorization': `Bearer ${token}` };
-      
-      const mascotasRes = await fetch('http://localhost:8181/api/mascotas/getAll', { headers });
-      const mascotasData = await mascotasRes.json();
-      setMascotas(mascotasData);
+      const [mascotasRes, razasRes, especiesRes, refugiosRes] = await Promise.all([
+        fetch('http://localhost:8181/api/mascotas/getAll', { headers }),
+        fetch('http://localhost:8181/api/razas/getAll', { headers }),
+        fetch('http://localhost:8181/api/especies/getAll', { headers }),
+        fetch('http://localhost:8181/api/refugios/getAll', { headers })
+      ]);
 
-      // Cargar todas las razas (las usaremos para filtrar)
-      const razasRes = await fetch('http://localhost:8181/api/razas/getAll', { headers });
       if (!razasRes.ok) throw new Error('Error al cargar Razas');
-      const razasData = await razasRes.json();
-      setRazas(razasData); // <-- Lista maestra de razas
-
-      // Cargar todas las especies
-      const especiesRes = await fetch('http://localhost:8181/api/especies/getAll', { headers });
       if (!especiesRes.ok) throw new Error('Error al cargar Especies');
-      const especiesData = await especiesRes.json();
-      setEspecies(especiesData); // <-- Lista de especies para el nuevo <Select>
-
-      const refugiosRes = await fetch('http://localhost:8181/api/refugios/getAll', { headers });
       if (!refugiosRes.ok) throw new Error('Error al cargar Refugios');
-      const refugiosData = await refugiosRes.json();
-      setRefugios(refugiosData);
+
+      setMascotas(await mascotasRes.json());
+      setRazas(await razasRes.json());
+      setEspecies(await especiesRes.json());
+      setRefugios(await refugiosRes.json());
       
     } catch (error) {
       toast({ title: 'Error al cargar datos', description: error.message, status: 'error' });
@@ -74,41 +76,56 @@ const AdminMascotas = () => {
     }
   };
 
-  useEffect(() => {
-    if (token) {
-      fetchData();
-    }
-  }, [token]);
+  useEffect(() => { if (token) fetchData(); }, [token]);
 
-  // --- CAMBIO 4: useEffect para filtrar razas cuando cambia la especie ---
+  // --- CORRECCIÓN CRUCIAL: FILTRO DE RAZAS POR ESTADO DE ESPECIE ---
+  // Este useEffect filtra las razas disponibles y maneja la lógica de desactivación
   useEffect(() => {
-    if (selectedEspecieId) {
-      // Filtra la lista maestra de razas
-      const newFilteredRazas = razas.filter(
-        r => r.especie.idEspecie === parseInt(selectedEspecieId)
-      );
-      setFilteredRazas(newFilteredRazas);
+    // 1. Encuentra el objeto especie completo
+    const selectedEspecie = especies.find(e => e.idEspecie === parseInt(selectedEspecieId));
+    const isEspecieActive = selectedEspecie?.estado === 'ACTIVO';
+    
+    // Si no hay especie seleccionada O la especie seleccionada está INACTIVO
+    if (!selectedEspecieId || !isEspecieActive) { 
+        setFilteredRazas([]); 
+        // Si el campo de raza tiene un valor, lo reseteamos para forzar la validación
+        if (formData.idRaza) {
+            setFormData(prev => ({ ...prev, idRaza: '' }));
+        }
     } else {
-      setFilteredRazas([]); // Si no hay especie, no hay razas
+        // Si la especie está ACTIVO, filtramos las razas
+        const newFilteredRazas = razas.filter(r => r.especie.idEspecie === parseInt(selectedEspecieId));
+        setFilteredRazas(newFilteredRazas);
     }
-  }, [selectedEspecieId, razas]); // Se ejecuta si cambia la especie o la lista de razas
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedEspecieId, razas, especies, setFormData]); 
 
+  // Hook para calcular Edad en Meses
+  useEffect(() => {
+    const numericValue = parseInt(ageValue) || 0;
+    if (ageUnit === 'anios') {
+      setFormData(prev => ({ ...prev, edadMeses: numericValue * 12 }));
+    } else {
+      setFormData(prev => ({ ...prev, edadMeses: numericValue }));
+    }
+  }, [ageUnit, ageValue]);
 
-  // --- CAMBIO 5: Lógica de formulario actualizada ---
   
+  // --- LÓGICA DEL FORMULARIO Y HANDLERS ---
   const resetForm = () => {
     setFormData({
       nombre: '', sexo: '', edadMeses: 0, estado: '',
       img: '', idRaza: '', idRefugio: ''
     });
-    setSelectedEspecieId(''); // <-- Resetear especie
+    setSelectedEspecieId('');
+    setAgeUnit('meses');
+    setAgeValue(0);
   };
 
   const handleShowCreateRow = () => {
     resetForm();
-    setCurrentMascota(null);
     setIsCreating(true);
-    onClose(); 
+    setEditingId(null); 
   };
 
   const handleCancelCreate = () => {
@@ -116,53 +133,62 @@ const AdminMascotas = () => {
     resetForm();
   };
 
-  // Actualizado para setear la especie al abrir el modal de edición
-  const handleOpenEditModal = (mascota) => {
-    // Encontrar la raza completa para saber su especie
+  const handleStartEdit = (mascota) => {
+    const { edadMeses } = mascota;
+    
+    if (edadMeses > 12 && edadMeses % 12 === 0 && edadMeses / 12 <= 30) {
+      setAgeUnit('anios');
+      setAgeValue(edadMeses / 12);
+    } else {
+      setAgeUnit('meses');
+      setAgeValue(edadMeses || 0);
+    }
+
     const razaCompleta = razas.find(r => r.idRaza === mascota.raza.idRaza);
     const especieId = razaCompleta ? razaCompleta.especie.idEspecie.toString() : '';
-    
-    // 1. Setear la especie (esto dispara el useEffect y filtra las razas)
     setSelectedEspecieId(especieId);
     
-    // 2. Setear los datos del formulario (incluyendo la raza correcta)
-    setCurrentMascota(mascota);
     setFormData({
-      idMascota: mascota.idMascota, 
-      nombre: mascota.nombre,
-      sexo: mascota.sexo,
-      edadMeses: mascota.edadMeses,
-      estado: mascota.estado,
-      img: mascota.img,
+      ...mascota,
+      idMascota: mascota.idMascota,
+      sexo: mascota.sexo || '',
+      estado: mascota.estado || '',
       idRaza: mascota.raza.idRaza,
       idRefugio: mascota.refugio.idRefugio
     });
+
+    setEditingId(mascota.idMascota);
     setIsCreating(false); 
-    onOpen(); 
   };
 
-  // --- CAMBIO 6: Handler para el cambio de Especie (resetea la raza) ---
-  const handleSpeciesChange = (e) => {
-    const newEspecieId = e.target.value;
-    setSelectedEspecieId(newEspecieId);
-    // Forzar al usuario a re-elegir una raza
-    setFormData(prev => ({ ...prev, idRaza: '' })); 
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    resetForm();
   };
 
-  // (handleSave y handleChange sin cambios)
   const handleSave = async () => {
     const payload = {
       idMascota: formData.idMascota || null, 
       nombre: formData.nombre,
       sexo: formData.sexo,
-      edadMeses: parseInt(formData.edadMeses),
+      edadMeses: parseInt(formData.edadMeses), 
       estado: formData.estado,
       img: formData.img,
       raza: { idRaza: parseInt(formData.idRaza) },
       refugio: { idRefugio: parseInt(formData.idRefugio) }
     };
 
+    if (!payload.sexo || !payload.estado || !payload.idRaza || !payload.idRefugio) {
+      toast({ title: 'Faltan campos obligatorios', description: 'Por favor, revisa los campos con *', status: 'error' });
+      return;
+    }
+    if (payload.edadMeses === 0) {
+      toast({ title: 'La edad no puede ser 0', status: 'error' });
+      return;
+    }
+
     try {
+      // Nota: Aquí necesitarías pasar el token de autorización, ya que el backend lo espera.
       const response = await fetch('http://localhost:8181/api/mascotas/save', {
         method: 'POST',
         headers: {
@@ -176,8 +202,8 @@ const AdminMascotas = () => {
       }
       toast({ title: '¡Guardado!', status: 'success' });
       fetchData(); 
-      onClose();
       handleCancelCreate(); 
+      handleCancelEdit();
     } catch (error) {
       toast({ title: error.message, status: 'error' });
     }
@@ -188,11 +214,9 @@ const AdminMascotas = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  // ... (isLoading y chequeo de razas/refugios sin cambios) ...
   if (isLoading) {
     return <Spinner size="xl" mx="auto" mt={10} />;
   }
-  // Añadimos 'especies.length === 0' a la validación
   if (razas.length === 0 || refugios.length === 0 || especies.length === 0) {
     return (
        <VStack spacing={4} align="start">
@@ -209,130 +233,181 @@ const AdminMascotas = () => {
     )
   }
 
-  // --- CAMBIO 7: Añadir el <Select> de Especie al formulario inline ---
-  const InlineFormRow = () => (
-    <Tr bg="gray.50">
-      <Td colSpan={5}>
-        <VStack spacing={4} align="stretch" p={4}>
-          <Heading size="md" textAlign="center">Crear Nueva Mascota</Heading>
-          
-          <SimpleGrid columns={2} spacing={4}>
-            <FormControl isRequired>
-              <FormLabel>Nombre</FormLabel>
-              <Input name="nombre" value={formData.nombre} onChange={handleChange} bg="white" />
-            </FormControl>
-            <FormControl isRequired>
-              <FormLabel>Refugio</FormLabel>
-              <Select 
-                name="idRefugio" 
-                value={formData.idRefugio} 
-                onChange={handleChange} 
-                bg="white" 
-                placeholder="Seleccionar..."
-              >
-                {refugios.map(ref => (
-                  <option key={ref.idRefugio} value={ref.idRefugio}>{ref.nombre}</option>
-                ))}
-              </Select>
-            </FormControl>
-          </SimpleGrid>
+  // --- Componente de Fila de Formulario ---
+  const MascotaFormRow = ({ isEditing }) => {
+    
+    const renderOptions = () => {
+      const options = ageUnit === 'anios' ? yearOptions : monthOptions;
+      return options.map(val => (
+        <option key={val} value={val}>{val}</option>
+      ));
+    };
+    const renderOptionsParaEditar = () => {
+      const options = ageUnit === 'anios' ? yearOptions : monthOptions;
+      if (ageValue && !options.includes(parseInt(ageValue))) {
+         options.push(parseInt(ageValue));
+         options.sort((a,b) => a-b);
+      }
+      return options.map(val => (
+        <option key={val} value={val}>{val}</option>
+      ));
+    };
 
-          <SimpleGrid columns={2} spacing={4}>
-            {/* --- NUEVO CAMPO ESPECIAS --- */}
-            <FormControl isRequired>
-              <FormLabel>Especie</FormLabel>
-              <Select 
-                value={selectedEspecieId} 
-                onChange={handleSpeciesChange} // <-- Usa el handler especial
-                bg="white" 
-                placeholder="Seleccionar..."
-              >
-                {/* Filtramos solo las activas */}
-                {especies.filter(e => e.estado === 'ACTIVO').map(e => (
-                  <option key={e.idEspecie} value={e.idEspecie}>{e.nombre}</option>
-                ))}
-              </Select>
+    return (
+      <Tr bg="gray.50">
+        <Td colSpan={9}>
+          <VStack spacing={4} align="stretch" p={4}>
+            <Heading size="md" textAlign="center">
+              {isEditing ? `Editando Mascota: ${formData.nombre}` : "Crear Nueva Mascota"}
+            </Heading>
+            
+            <SimpleGrid columns={2} spacing={4}>
+              <FormControl isRequired>
+                <FormLabel>Nombre</FormLabel>
+                <Input name="nombre" value={formData.nombre} onChange={handleChange} bg="white" />
+              </FormControl>
+              <FormControl isRequired>
+                <FormLabel>Refugio</FormLabel>
+                <Select name="idRefugio" value={formData.idRefugio} onChange={handleChange} bg="white" placeholder="Seleccionar...">
+                  {refugios.map(ref => (
+                    <option key={ref.idRefugio} value={ref.idRefugio}>{ref.nombre}</option>
+                  ))}
+                </Select>
+              </FormControl>
+            </SimpleGrid>
+
+            <SimpleGrid columns={2} spacing={4}>
+              <FormControl isRequired>
+                <FormLabel>Especie</FormLabel>
+                <Select 
+                  value={selectedEspecieId} 
+                  onChange={(e) => { handleSpeciesChange(e); setAgeValue(0); }}
+                  bg="white" 
+                  placeholder="Seleccionar..."
+                >
+                  {especies.filter(e => e.estado === 'ACTIVO').map(e => (
+                    <option key={e.idEspecie} value={e.idEspecie}>{e.nombre}</option>
+                  ))}
+                </Select>
+              </FormControl>
+              <FormControl isRequired>
+                <FormLabel>Raza</FormLabel>
+                <Select 
+                  name="idRaza" 
+                  value={formData.idRaza} 
+                  onChange={handleChange} 
+                  bg="white" 
+                  placeholder={selectedEspecieId ? "Seleccionar..." : "Elige una especie primero"}
+                  isDisabled={!selectedEspecieId} 
+                >
+                  {filteredRazas.filter(r => r.estado === 'ACTIVO').map(raza => (
+                    <option key={raza.idRaza} value={raza.idRaza}>{raza.nombre}</option>
+                  ))}
+                </Select>
+              </FormControl>
+            </SimpleGrid>
+            
+            <FormControl>
+              <FormLabel>URL de Imagen</FormLabel>
+              <Input name="img" value={formData.img} onChange={handleChange} placeholder="/images/pets/nombre.png" bg="white" />
             </FormControl>
             
-            {/* --- CAMPO RAZA MODIFICADO --- */}
+            <SimpleGrid columns={3} spacing={4}>
+              <FormControl isRequired>
+                <FormLabel>Sexo</FormLabel>
+                <Select name="sexo" value={formData.sexo} onChange={handleChange} bg="white" placeholder="Seleccionar...">
+                  <option value="M">Macho</option>
+                  <option value="F">Hembra</option>
+                  <option value="DESCONOCIDO">Desconocido</option>
+                </Select>
+              </FormControl>
+              <FormControl isRequired>
+                <FormLabel>Unidad Edad</FormLabel>
+                <Select 
+                  value={ageUnit} 
+                  onChange={(e) => { setAgeUnit(e.target.value); setAgeValue(0); }} 
+                  bg="white"
+                >
+                  <option value="meses">Meses</option>
+                  <option value="anios">Años</option>
+                </Select>
+              </FormControl>
+              <FormControl isRequired>
+                <FormLabel>Edad</FormLabel>
+                <Select 
+                  value={ageValue} 
+                  onChange={(e) => setAgeValue(e.target.value)} 
+                  bg="white"
+                  placeholder="Elegir..."
+                >
+                  {isEditing ? renderOptionsParaEditar() : renderOptions()}
+                </Select>
+              </FormControl>
+            </SimpleGrid>
+
             <FormControl isRequired>
-              <FormLabel>Raza</FormLabel>
-              <Select 
-                name="idRaza" 
-                value={formData.idRaza} 
-                onChange={handleChange} 
-                bg="white" 
-                placeholder={selectedEspecieId ? "Seleccionar..." : "Elige una especie primero"}
-                isDisabled={!selectedEspecieId} // <-- Deshabilitado si no hay especie
-              >
-                {/* Mapea las razas FILTRADAS y activas */}
-                {filteredRazas.filter(r => r.estado === 'ACTIVO').map(raza => (
-                  <option key={raza.idRaza} value={raza.idRaza}>{raza.nombre}</option>
-                ))}
+              <FormLabel>Estado</FormLabel>
+              <Select name="estado" value={formData.estado} onChange={handleChange} bg="white" placeholder="Seleccionar...">
+                <option value="EN_REFUGIO">En Refugio</option>
+                <option value="EN_PROCESO_ADOPCION">En Proceso</option>
+                <option value="ADOPTADA">Adoptada</option>
+                <option value="OTRO">Otro</option>
               </Select>
             </FormControl>
-          </SimpleGrid>
 
-          <FormControl isRequired>
-            <FormLabel>Estado</FormLabel>
-            <Select 
-              name="estado" 
-              value={formData.estado} 
-              onChange={handleChange} 
-              bg="white" 
-              placeholder="Seleccionar..."
-            >
-              <option value="EN_REFUGIO">En Refugio</option>
-              <option value="EN_PROCESO_ADOPCION">En Proceso</option>
-              <option value="ADOPTADA">Adoptada</option>
-              <option value="OTRO">Otro</option>
-            </Select>
-          </FormControl>
-          
-          <FormControl>
-            <FormLabel>URL de Imagen</FormLabel>
-            <Input name="img" value={formData.img} onChange={handleChange} placeholder="/images/pets/nombre.png" bg="white" />
-          </FormControl>
-          
-          <SimpleGrid columns={2} spacing={4}>
-            <FormControl isRequired>
-              <FormLabel>Sexo</FormLabel>
-              <Select 
-                name="sexo" 
-                value={formData.sexo} 
-                onChange={handleChange} 
-                bg="white" 
-                placeholder="Seleccionar..."
+            <HStack justify="flex-end" mt={4}>
+              <Button 
+                variant="ghost" 
+                onClick={isEditing ? handleCancelEdit : handleCancelCreate} 
+                leftIcon={<CloseIcon />}
               >
-                <option value="M">Macho</option>
-                <option value="F">Hembra</option>
-                <option value="DESCONOCIDO">Desconocido</option>
-              </Select>
-            </FormControl>
-            <FormControl>
-              <FormLabel>Edad (en meses)</FormLabel>
-              <Input name="edadMeses" type="number" value={formData.edadMeses} onChange={handleChange} bg="white" />
-            </FormControl>
-          </SimpleGrid>
-
-          <HStack justify="flex-end" mt={4}>
-            <Button variant="ghost" onClick={handleCancelCreate} leftIcon={<CloseIcon />}>Cancelar</Button>
-            <Button 
-              bg="brand.800"
-              color="white"
-              _hover={{ bg: 'brand.900' }}
-              onClick={handleSave} 
-              leftIcon={<CheckIcon />}
-            >
-              Guardar Mascota
-            </Button>
-          </HStack>
-        </VStack>
+                Cancelar
+              </Button>
+              <Button 
+                bg="brand.800"
+                color="white"
+                _hover={{ bg: 'brand.900' }}
+                onClick={handleSave} 
+                leftIcon={<CheckIcon />}
+              >
+                {isEditing ? "Guardar Cambios" : "Guardar Mascota"}
+              </Button>
+            </HStack>
+          </VStack>
+        </Td>
+      </Tr>
+    );
+  };
+  
+  // --- Componente de Fila de Mascota ---
+  const MascotaRow = ({ mascota }) => (
+    <Tr key={mascota.idMascota}>
+      <Td>{mascota.idMascota}</Td>
+      <Td>
+        {mascota.img ? (
+          <Image src={mascota.img} alt={mascota.nombre} boxSize="50px" objectFit="cover" borderRadius="md" />
+        ) : (
+          <Text fontSize="xs" color="gray.500">Sin imagen</Text>
+        )}
+      </Td>
+      <Td>{mascota.nombre}</Td>
+      <Td>{mascota.raza?.nombre || 'N/A'}</Td>
+      <Td>{formatEdad(mascota.edadMeses)}</Td>
+      <Td>{mascota.sexo}</Td>
+      <Td>{mascota.refugio?.nombre || 'N/A'}</Td>
+      <Td>{mascota.estado}</Td>
+      <Td>
+        <IconButton 
+          icon={<EditIcon />} 
+          aria-label="Editar" 
+          mr={2}
+          colorScheme="teal"
+          onClick={() => handleStartEdit(mascota)}
+        />
       </Td>
     </Tr>
   );
 
-  // ... (El return de la tabla principal sin cambios) ...
   return (
     <Box>
       <Button 
@@ -342,7 +417,7 @@ const AdminMascotas = () => {
         _hover={{ bg: 'brand.900' }}
         mb={4} 
         onClick={handleShowCreateRow}
-        isDisabled={isCreating} 
+        isDisabled={isCreating || editingId} 
       >
         Crear Nueva Mascota
       </Button>
@@ -350,165 +425,35 @@ const AdminMascotas = () => {
       <Table variant="striped">
         <Thead>
           <Tr>
+            <Th>ID</Th>
+            <Th>Imagen</Th>
             <Th>Nombre</Th>
-            <Th>Estado</Th>
             <Th>Raza</Th>
+            <Th>Edad</Th>
+            <Th>Sexo</Th>
             <Th>Refugio</Th>
+            <Th>Estado</Th>
             <Th>Acciones</Th>
           </Tr>
         </Thead>
         <Tbody>
-          {isCreating && <InlineFormRow />}
+          {isCreating && <MascotaFormRow isEditing={false} />}
 
           {mascotas.length === 0 && !isCreating && (
             <Tr>
-              <Td colSpan={5} textAlign="center">
+              <Td colSpan={9} textAlign="center">
                 <Text color="gray.500">No hay mascotas agregadas. ¡Crea la primera!</Text>
               </Td>
             </Tr>
           )}
 
           {mascotas.map(m => (
-            <Tr key={m.idMascota}>
-              <Td>{m.nombre}</Td>
-              <Td>{m.estado}</Td>
-              <Td>{m.raza?.nombre || 'N/A'}</Td>
-              <Td>{m.refugio?.nombre || 'N/A'}</Td>
-              <Td>
-                <IconButton 
-                  icon={<EditIcon />} 
-                  aria-label="Editar" 
-                  mr={2}
-                  colorScheme="teal"
-                  onClick={() => handleOpenEditModal(m)}
-                />
-              </Td>
-            </Tr>
+            editingId === m.idMascota
+              ? <MascotaFormRow key={m.idMascota} isEditing={true} />
+              : <MascotaRow key={m.idMascota} mascota={m} />
           ))}
         </Tbody>
       </Table>
-
-      {/* --- CAMBIO 8: Añadir el <Select> de Especie al MODAL DE EDICIÓN --- */}
-      <Modal isOpen={isOpen} onClose={onClose}>
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Editar Mascota: {currentMascota?.nombre}</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            <VStack spacing={4} align="stretch">
-              
-              <SimpleGrid columns={2} spacing={4}>
-                <FormControl isRequired>
-                  <FormLabel>Nombre</FormLabel>
-                  <Input name="nombre" value={formData.nombre} onChange={handleChange} bg="white" />
-                </FormControl>
-                <FormControl isRequired>
-                  <FormLabel>Refugio</FormLabel>
-                  <Select 
-                    name="idRefugio" 
-                    value={formData.idRefugio} 
-                    onChange={handleChange} 
-                    bg="white" 
-                    placeholder="Seleccionar..."
-                  >
-                    {refugios.map(ref => (
-                      <option key={ref.idRefugio} value={ref.idRefugio}>{ref.nombre}</option>
-                    ))}
-                  </Select>
-                </FormControl>
-              </SimpleGrid>
-
-              <SimpleGrid columns={2} spacing={4}>
-                {/* --- NUEVO CAMPO ESPECIAS (Modal) --- */}
-                <FormControl isRequired>
-                  <FormLabel>Especie</FormLabel>
-                  <Select 
-                    value={selectedEspecieId} 
-                    onChange={handleSpeciesChange} // <-- Usa el handler especial
-                    bg="white" 
-                    placeholder="Seleccionar..."
-                  >
-                    {especies.filter(e => e.estado === 'ACTIVO').map(e => (
-                      <option key={e.idEspecie} value={e.idEspecie}>{e.nombre}</option>
-                    ))}
-                  </Select>
-                </FormControl>
-
-                {/* --- CAMPO RAZA MODIFICADO (Modal) --- */}
-                <FormControl isRequired>
-                  <FormLabel>Raza</FormLabel>
-                  <Select 
-                    name="idRaza" 
-                    value={formData.idRaza} 
-                    onChange={handleChange} 
-                    bg="white" 
-                    placeholder={selectedEspecieId ? "Seleccionar..." : "Elige una especie primero"}
-                    isDisabled={!selectedEspecieId} // <-- Deshabilitado
-                  >
-                    {/* Mapea las razas FILTRADAS y activas */}
-                    {filteredRazas.filter(r => r.estado === 'ACTIVO').map(raza => (
-                      <option key={raza.idRaza} value={raza.idRaza}>{raza.nombre}</option>
-                    ))}
-                  </Select>
-                </FormControl>
-              </SimpleGrid>
-              
-              <FormControl isRequired>
-                <FormLabel>Estado</FormLabel>
-                <Select 
-                  name="estado" 
-                  value={formData.estado} 
-                  onChange={handleChange} 
-                  bg="white" 
-                  placeholder="Seleccionar..."
-                >
-                  <option value="EN_REFUGIO">En Refugio</option>
-                  <option value="EN_PROCESO_ADOPCION">En Proceso</option>
-                  <option value="ADOPTADA">Adoptada</option>
-                  <option value="OTRO">Otro</option>
-                </Select>
-              </FormControl>
-
-              <FormControl>
-                <FormLabel>URL de Imagen</FormLabel>
-                <Input name="img" value={formData.img} onChange={handleChange} placeholder="/images/pets/nombre.png" bg="white" />
-              </FormControl>
-              
-              <SimpleGrid columns={2} spacing={4}>
-                <FormControl isRequired>
-                  <FormLabel>Sexo</FormLabel>
-                  <Select 
-                    name="sexo" 
-                    value={formData.sexo} 
-                    onChange={handleChange} 
-                    bg="white" 
-                    placeholder="Seleccionar..."
-                  >
-                    <option value="M">Macho</option>
-                    <option value="F">Hembra</option>
-                    <option value="DESCONOCIDO">Desconocido</option>
-                  </Select>
-                </FormControl>
-                <FormControl>
-                  <FormLabel>Edad (en meses)</FormLabel>
-                  <Input name="edadMeses" type="number" value={formData.edadMeses} onChange={handleChange} bg="white" />
-                </FormControl>
-              </SimpleGrid>
-            </VStack>
-          </ModalBody>
-          <ModalFooter>
-            <Button variant="ghost" mr={3} onClick={onClose}>Cancelar</Button>
-            <Button 
-              bg="brand.800"
-              color="white"
-              _hover={{ bg: 'brand.900' }}
-              onClick={handleSave}
-            >
-              Guardar Cambios
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
     </Box>
   );
 };

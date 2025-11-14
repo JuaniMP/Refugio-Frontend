@@ -7,10 +7,10 @@ import {
   VStack,
   Heading,
   useToast,
-  HStack, // Para los botones
+  HStack,
   Text,
-  Progress, // Para el medidor de contraseña
-  FormErrorMessage, // Para errores de validación
+  Progress,
+  FormErrorMessage,
 } from '@chakra-ui/react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -90,7 +90,7 @@ const RegisterPage = () => {
     }
   };
 
-  // --- Envío final (Paso 2) ---
+  // --- Envío final (Paso 2) - MODIFICADO para Verificación ---
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -131,15 +131,18 @@ const RegisterPage = () => {
         throw new Error(errorData.message || 'Error al registrar la cuenta.');
       }
 
+      // --- CAMBIOS PARA VERIFICACIÓN DE EMAIL ---
       toast({
-        title: 'Cuenta Creada',
-        description: 'Tu cuenta de adoptante ha sido creada.',
+        title: '¡Registro Exitoso!',
+        description: 'Te hemos enviado un código a tu correo para activar tu cuenta.',
         status: 'success',
         duration: 5000,
         isClosable: true,
       });
       
-      navigate('/login');
+      // Redirigir a la página de verificación, pasando el email
+      navigate('/verificar-cuenta', { state: { email: formData.email } });
+      // --- FIN DE CAMBIOS ---
 
     } catch (error) {
       toast({

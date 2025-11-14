@@ -34,6 +34,20 @@ const LoginPage = () => {
       const data = await response.json();
 
       if (!response.ok) {
+        // --- 3. LÓGICA DE INTERCEPTACIÓN DE CUENTA INACTIVA ---
+        if (data.error === 'ACCOUNT_INACTIVE') {
+          toast({
+            title: 'Cuenta Inactiva',
+            description: 'Tu cuenta está inactiva. Revisa tu email para el código de verificación.',
+            status: 'warning',
+            duration: 7000,
+          });
+          // Redirigir a la página de verificación, pasando el email
+          navigate('/verificar-cuenta', { state: { email: email } });
+          return;
+        }
+        // --- FIN LÓGICA DE INTERCEPTACIÓN ---
+        
         throw new Error(data.message || 'Error al iniciar sesión');
       }
 
@@ -46,14 +60,11 @@ const LoginPage = () => {
         isClosable: true,
       });
 
-      // --- CAMBIO AQUÍ ---
-      // Si el rol es 'AD', va a /admin. Si no, va a /
       if (data.rol === 'AD') {
         navigate('/admin');
       } else {
         navigate('/'); 
       }
-      // --- FIN DEL CAMBIO ---
 
     } catch (error) {
       toast({
@@ -68,7 +79,6 @@ const LoginPage = () => {
     }
   };
 
-  // ... (el return no cambia) ...
   return (
     <Box bg="brand.100" p={8} borderRadius="md" maxW="md" mx="auto" mt={10}>
       <Heading as="h2" size="xl" mb={6} textAlign="center" color="brand.900">
@@ -113,11 +123,14 @@ const LoginPage = () => {
           Regístrate aquí
         </ChakraLink>
       </Text>
+      
+      {/* --- 4. ARREGLO DEL ENLACE OLVIDADO --- */}
       <Text mt={2} textAlign="center">
-        <ChakraLink color="brand.800" href="#">
+        <ChakraLink as={Link} to="/olvide-contrasena" color="brand.800">
           ¿Olvidaste tu contraseña?
         </ChakraLink>
       </Text>
+      {/* --- FIN ARREGLO --- */}
     </Box>
   );
 };
