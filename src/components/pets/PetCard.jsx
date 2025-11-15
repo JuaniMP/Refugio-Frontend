@@ -1,13 +1,15 @@
 import { 
     Box, Image, Badge, Text, Button, VStack, useToast, Flex 
 } from '@chakra-ui/react';
-import { motion } from 'framer-motion'; // <-- Importar motion
+import { motion } from 'framer-motion'; 
 import { useAuth } from '../../context/AuthContext'; 
 import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 const PetCard = ({ pet, getStatusDetails, formatEdad }) => {
   const toast = useToast();
   const { isAuthenticated, userRol } = useAuth(); 
+  const navigate = useNavigate();
   
   const details = getStatusDetails(pet.estado);
   const ageString = formatEdad(pet.edadMeses);
@@ -26,13 +28,7 @@ const PetCard = ({ pet, getStatusDetails, formatEdad }) => {
     }
     
     if (isAuthenticated && userRol === 'AP') {
-      toast({
-        title: `¡Genial! Iniciando solicitud para ${pet.nombre}`,
-        description: 'Serás redirigido al formulario de solicitud en breve. (Lógica pendiente)',
-        status: 'success',
-        duration: 5000,
-        isClosable: true,
-      });
+      navigate('/solicitud', { state: { idMascota: pet.idMascota } });
     } else {
       toast({
         title: 'Función requiere inicio de sesión',
@@ -46,10 +42,11 @@ const PetCard = ({ pet, getStatusDetails, formatEdad }) => {
 
   return (
     <Box 
-        as={motion.div} // <-- Usar motion.div para la animación de hover
-        whileHover={{ scale: 1.03, boxShadow: "lg" }} // Animación al pasar el ratón
-        transition={{ duration: 0.2 }} // Duración de la transición
-        bg="white" // Cambiado a blanco para mejor contraste y sensación "limpia"
+        as={motion.div} 
+        // 1. Animación de la tarjeta al pasar el mouse (ya existía)
+        whileHover={{ scale: 1.03, boxShadow: "lg" }}
+        transition={{ duration: 0.2 }}
+        bg="white" 
         borderWidth="1px" 
         borderColor={details.color ? `${details.color}.200` : 'gray.200'} 
         borderRadius="lg" 
@@ -57,14 +54,23 @@ const PetCard = ({ pet, getStatusDetails, formatEdad }) => {
         p={4}
         boxShadow="md"
     >
-      <Image 
-          src={pet.img || '/images/pets/default.png'} 
-          alt={`Foto de ${pet.nombre}`} 
-          borderRadius="md" 
-          objectFit="cover"
-          height="200px" 
-          width="100%"
-      />
+      {/* --- ⬇️ IMPLEMENTACIÓN DEL ZOOM EN LA FOTO ⬇️ --- */}
+      <Box overflow="hidden" borderRadius="md" height="200px" width="100%">
+          <Image 
+              as={motion.img} // <-- Usamos motion.img
+              src={pet.img || '/images/pets/default.png'} 
+              alt={`Foto de ${pet.nombre}`} 
+              borderRadius="md" 
+              objectFit="cover"
+              height="100%" 
+              width="100%"
+              // 2. Animación de escala (zoom) al pasar el cursor sobre la tarjeta contenedora
+              whileHover={{ scale: 1.15 }} 
+              transition={{ duration: 0.3 }}
+          />
+      </Box>
+      {/* --- ⬆️ FIN DEL ZOOM EN LA FOTO ⬆️ --- */}
+      
       <VStack align="start" mt={4} spacing={1}>
         <Flex align="center" justify="space-between" w="100%">
             <Text fontWeight="bold" fontSize="lg" color="brand.900">{pet.nombre}</Text>
@@ -78,16 +84,16 @@ const PetCard = ({ pet, getStatusDetails, formatEdad }) => {
             </Badge>
         </Flex>
         
-        <Text fontSize="md" color="brand.800" fontWeight="semibold"> {/* Color ajustado */}
+        <Text fontSize="md" color="brand.800" fontWeight="semibold"> 
             Raza: {pet.raza?.nombre || 'Mestizo'}
         </Text>
-        <Text fontSize="sm" color="brand.700"> {/* Color ajustado */}
+        <Text fontSize="sm" color="brand.700"> 
             {details.description}
         </Text>
-        <Text fontSize="sm" color="brand.600"> {/* Color ajustado */}
+        <Text fontSize="sm" color="brand.600"> 
             Edad: {ageString} | Sexo: {pet.sexo === 'M' ? 'Macho' : pet.sexo === 'F' ? 'Hembra' : 'Desconocido'}
         </Text>
-        <Text fontSize="sm" color="brand.600"> {/* Color ajustado */}
+        <Text fontSize="sm" color="brand.600"> 
             Refugio: {pet.refugio?.nombre || 'N/A'}
         </Text>
         

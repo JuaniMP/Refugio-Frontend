@@ -1,3 +1,4 @@
+// Archivo: src/App.jsx
 import { Routes, Route } from 'react-router-dom';
 import Layout from './components/layout/Layout';
 import HomePage from './pages/HomePage';
@@ -12,26 +13,32 @@ import ResetPasswordPage from './pages/ResetPasswordPage';
 import ForceResetPasswordPage from './pages/ForceResetPasswordPage';
 import CuidadorRoute from './components/auth/CuidadorRoute';
 import CuidadorDashboardPage from './pages/CuidadorDashboardPage';
-
-// --- ⬇️ IMPORTAR LO NUEVO ⬇️ ---
 import VeterinarioRoute from './components/auth/VeterinarioRoute';
 import VeterinarioDashboardPage from './pages/VeterinarioDashboardPage';
 import VeterinarioProfilePage from './pages/VeterinarioProfilePage';
+import SolicitudPage from './pages/SolicitudPage';
+import MisSolicitudesPage from './pages/MisSolicitudesPage'; // <-- NUEVA IMPORTACIÓN
 
 
 function App() {
   return (
     <Layout>
       <Routes>
-        {/* ... (Rutas Públicas, /perfil, /force-reset, /cuidador sin cambios) ... */}
+        {/* Rutas Públicas */}
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/verificar-cuenta" element={<VerifyAccountPage />} />
         <Route path="/olvide-contrasena" element={<ForgotPasswordPage />} />
         <Route path="/resetear-contrasena" element={<ResetPasswordPage />} />
-        <Route path="/force-reset-password" element={<ForceResetPasswordPage />} />
+        <Route path="/solicitud" element={<SolicitudPage />} />
+        
+        {/* Rutas Privadas (Adoptante) */}
         <Route path="/perfil" element={<ProfilePage />} />
+        <Route path="/mis-solicitudes" element={<MisSolicitudesPage />} /> {/* <-- RUTA AÑADIDA */}
+
+        {/* Rutas de Empleados y Admin */}
+        <Route path="/force-reset-password" element={<ForceResetPasswordPage />} />
         <Route 
           path="/cuidador" 
           element={
@@ -40,8 +47,6 @@ function App() {
             </CuidadorRoute>
           } 
         />
-        
-        {/* --- ⬇️ AÑADIR NUEVAS RUTAS DE VETERINARIO ⬇️ --- */}
         <Route 
           path="/veterinario" 
           element={
@@ -58,8 +63,6 @@ function App() {
             </VeterinarioRoute>
           } 
         />
-        
-        {/* ... (Rutas de Admin sin cambios) ... */}
         <Route 
           path="/admin" 
           element={
