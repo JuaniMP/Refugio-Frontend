@@ -15,12 +15,21 @@ const Header = () => {
   const currentPath = location.pathname;
   const showAuthButtons = !['/login', '/register'].includes(currentPath);
 
+  // --- ⬇️ LÓGICA DE LINK DEL LOGO ACTUALIZADA ⬇️ ---
+  const getHomeLink = () => {
+    switch (userRol) {
+      case 'AD': return '/admin';
+      case 'C': return '/cuidador';
+      case 'V': return '/veterinario';
+      default: return '/';
+    }
+  };
+
   return (
     <Box as="header" bg="brand.800" p={4} color="white">
       <Flex align="center">
         <Box>
-          {/* --- MODIFICADO: Ahora el link depende del rol --- */}
-          <Link to={userRol === 'AD' ? '/admin' : (userRol === 'C' ? '/cuidador' : '/')}>
+          <Link to={getHomeLink()}>
             <Image 
               src={logoBanner} 
               alt="Logo Bigotes Felizes" 
@@ -32,10 +41,8 @@ const Header = () => {
         <Spacer />
         <Box>
           {isAuthenticated ? (
-            // --- VISTA LOGUEADO ---
             <HStack spacing={4}>
               
-              {/* --- Botón "Vista Adoptante" (SOLO ADMIN) --- */}
               {userRol === 'AD' && currentPath.startsWith('/admin') && (
                 <Button 
                   as={Link}
@@ -65,20 +72,27 @@ const Header = () => {
                 />
                 
                 <MenuList color="brand.900">
+                  {/* Admin */}
                   {userRol === 'AD' && (
                     <MenuItem as={Link} to="/admin" fontWeight="bold">
                       Panel de Admin
                     </MenuItem>
                   )}
                   
-                  {/* --- ⬇️ AQUÍ ESTÁ EL CAMBIO IMPORTANTE ⬇️ --- */}
-                  {/* Ahora "Mi Perfil" solo lo ve el Adoptante ('AP') */}
+                  {/* Adoptante */}
                   {userRol === 'AP' && (
                      <MenuItem as={Link} to="/perfil">
                        Mi Perfil
                      </MenuItem>
                   )}
-                  {/* --- ⬆️ FIN DEL CAMBIO ⬆️ --- */}
+
+                  {/* --- ⬇️ AÑADIR ENLACE DE PERFIL PARA VET ⬇️ --- */}
+                  {userRol === 'V' && (
+                     <MenuItem as={Link} to="/veterinario/perfil">
+                       Mi Perfil (Vet)
+                     </MenuItem>
+                  )}
+                  {/* (El cuidador 'C' no tiene link de perfil, lo cual es correcto) */}
 
                   <MenuItem onClick={logout}>
                     Cerrar Sesión
@@ -87,7 +101,6 @@ const Header = () => {
               </Menu>
             </HStack>
           ) : (
-             // --- VISTA NO LOGUEADO ---
             showAuthButtons && (
               <Button 
                 as={Link} 

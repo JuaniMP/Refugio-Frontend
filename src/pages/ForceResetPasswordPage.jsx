@@ -66,9 +66,9 @@ const ForceResetPasswordPage = () => {
       if (userRol === 'AD') {
         navigate('/admin');
       } else if (userRol === 'C') {
-        navigate('/cuidador'); // <-- Redirige a la nueva ruta
+        navigate('/cuidador');
       } else if (userRol === 'V') {
-        navigate('/'); // (Ruta futura para veterinario)
+        navigate('/veterinario'); // <-- AÑADIDO
       } else {
         navigate('/');
       }

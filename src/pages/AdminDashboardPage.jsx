@@ -17,10 +17,11 @@ import {
   FaTag, 
   FaDog, 
   FaUsers, 
-  FaClipboardList 
+  FaClipboardList,
+  FaBookMedical // <-- 1. AÑADIR ÍCONO
 } from 'react-icons/fa';
 
-// Importa los componentes de cada sección (sin cambios)
+// Importa los componentes
 import AdminEstadisticas from '../components/admin/AdminEstadisticas';
 import AdminMascotas from '../components/admin/AdminMascotas';
 import AdminPersonal from '../components/admin/AdminPersonal';
@@ -28,35 +29,30 @@ import AdminRefugio from '../components/admin/AdminRefugio';
 import AdminAuditoria from '../components/admin/AdminAuditoria';
 import AdminEspecies from '../components/admin/AdminEspecies';
 import AdminRazas from '../components/admin/AdminRazas';
+import AdminVacunas from '../components/admin/AdminVacunas'; // <-- 2. IMPORTAR NUEVO COMPONENTE
 
-// --- 3. Componente auxiliar para la pestaña animada (LÓGICA INVERTIDA) ---
+// ... (El componente 'AnimatedTab' no cambia) ...
 const AnimatedTab = ({ icon, children }) => {
   return (
     <Tab 
-      // --- ESTILOS DE LA PESTAÑA (TAB) ---
-      minWidth="50px" // Ancho mínimo (solo para el icono)
+      minWidth="50px"
       paddingX="12px"
-      justifyContent="center" // Centrar el icono por defecto
-      transition="all 0.3s ease-out" // Animar el tamaño de la pestaña
-      
-      // Estilos de la pestaña seleccionada
+      justifyContent="center"
+      transition="all 0.3s ease-out"
       _selected={{ 
         color: 'white', 
         bg: 'brand.800',
-        minWidth: '160px', // Ancho expandido
-        justifyContent: 'flex-start', // Alinear a la izquierda
-        // Mostrar el texto
+        minWidth: '160px',
+        justifyContent: 'flex-start',
         '.tab-text': {
           maxWidth: '100px',
           opacity: 1,
           marginLeft: '0.5rem'
         }
       }}
-      // Estilos al pasar el mouse (hover)
       _hover={{
-        minWidth: '160px', // Ancho expandido
-        justifyContent: 'flex-start', // Alinear a la izquierda
-        // Mostrar el texto
+        minWidth: '160px',
+        justifyContent: 'flex-start',
         '.tab-text': {
           maxWidth: '100px',
           opacity: 1,
@@ -65,19 +61,16 @@ const AnimatedTab = ({ icon, children }) => {
       }}
     >
       <HStack>
-        {/* --- ICONO (Siempre visible) --- */}
         <Icon as={icon} boxSize="1.2em" /> 
-        
-        {/* --- TEXTO (Animado) --- */}
         <Text
           as="span"
           className="tab-text"
-          maxWidth="0" // Oculto por defecto
-          opacity={0} // Oculto por defecto
-          marginLeft="0" // Sin margen por defecto
+          maxWidth="0"
+          opacity={0}
+          marginLeft="0"
           overflow="hidden"
-          whiteSpace="nowrap" // Evita que el texto se parta
-          transition="all 0.2s ease-out" // La animación del texto
+          whiteSpace="nowrap"
+          transition="all 0.2s ease-out"
         >
           {children}
         </Text>
@@ -94,17 +87,16 @@ const AdminDashboardPage = () => {
         Panel de Administración
       </Heading>
       
-      {/* Ajustamos Tabs para que el fondo combine */}
       <Tabs variant="enclosed" colorScheme="blue">
-        {/* Usamos flex-start para que las pestañas se peguen a la izquierda */}
         <TabList justifyContent="flex-start">
-          {/* --- 4. Usar el nuevo componente animado --- */}
           <AnimatedTab icon={FaChartPie}>Estadísticas</AnimatedTab>
           <AnimatedTab icon={FaHome}>Refugio</AnimatedTab>
           <AnimatedTab icon={FaPaw}>Especies</AnimatedTab>
           <AnimatedTab icon={FaTag}>Razas</AnimatedTab>
           <AnimatedTab icon={FaDog}>Mascotas</AnimatedTab>
           <AnimatedTab icon={FaUsers}>Personal</AnimatedTab>
+          {/* --- 3. AÑADIR NUEVA PESTAÑA --- */}
+          <AnimatedTab icon={FaBookMedical}>Vacunas</AnimatedTab>
           <AnimatedTab icon={FaClipboardList}>Auditoría</AnimatedTab>
         </TabList>
 
@@ -126,6 +118,10 @@ const AdminDashboardPage = () => {
           </TabPanel>
           <TabPanel>
             <AdminPersonal />
+          </TabPanel>
+          {/* --- 4. AÑADIR NUEVO PANEL --- */}
+          <TabPanel>
+            <AdminVacunas />
           </TabPanel>
           <TabPanel>
             <AdminAuditoria />

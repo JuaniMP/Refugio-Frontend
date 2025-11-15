@@ -75,13 +75,13 @@ const LoginPage = () => {
       if (data.rol === 'AD') {
         navigate('/admin');
       } else if (data.rol === 'C') {
-        navigate('/cuidador'); // <-- Redirige a la nueva ruta
+        navigate('/cuidador');
       } else if (data.rol === 'V') {
-        // (Ruta futura para veterinario)
-        navigate('/'); // Por ahora al inicio
+        navigate('/veterinario'); // <-- AÑADIDO
       } else {
-        // Rol 'AP' (Adoptante) o sin rol
         navigate('/'); 
+       // Por ahora al inicio
+      
       }
       // --- ⬆️ FIN DE LA MODIFICACIÓN ⬆️ ---
 
