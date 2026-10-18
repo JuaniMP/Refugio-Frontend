@@ -6,6 +6,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { CheckCircleIcon } from '@chakra-ui/icons';
+import { API_URL } from '../config/api';
 
 // --- PREGUNTAS GUÍA DESAFIANTES ---
 const GUIDING_QUESTIONS = [
@@ -50,13 +51,13 @@ const SolicitudPage = () => {
         const headers = { 'Authorization': `Bearer ${token}` };
 
         // Fetch 1: Obtener ID del Adoptante logueado
-        const adoptanteRes = await fetch('http://localhost:8181/api/adoptantes/me', { headers });
+        const adoptanteRes = await fetch(`${API_URL}/adoptantes/me`, { headers });
         const adoptanteData = await adoptanteRes.json();
         if (!adoptanteRes.ok) throw new Error(adoptanteData.message || 'Error al cargar perfil de adoptante.');
         setAdoptanteId(adoptanteData.idAdoptante);
 
         // Fetch 2: Obtener detalles de la mascota
-        const petRes = await fetch(`http://localhost:8181/api/mascotas/${idMascota}`, { headers });
+        const petRes = await fetch(`${API_URL}/mascotas/${idMascota}`, { headers });
         const petData = await petRes.json();
         if (!petRes.ok) throw new Error(petData.message || 'Error al cargar detalles de la mascota.');
         setCurrentPet(petData);
@@ -98,7 +99,7 @@ const SolicitudPage = () => {
     };
     
     try {
-      const response = await fetch('http://localhost:8181/api/solicitudes/save', {
+      const response = await fetch(`${API_URL}/solicitudes/save`, {
         method: 'POST',
         headers: { 
             'Content-Type': 'application/json',
@@ -149,7 +150,7 @@ const SolicitudPage = () => {
         <Box bg="white" p={4} borderRadius="md" shadow="md" mb={6} borderWidth="1px" borderColor="brand.800">
             <HStack spacing={4} align="flex-start">
                 <Image 
-                    src={currentPet.img || '/images/pets/default.png'}
+                    src={currentPet.img || '/images/pets/default.svg'}
                     alt={currentPet.nombre}
                     boxSize="100px"
                     objectFit="cover"

@@ -5,6 +5,7 @@ import {
 } from '@chakra-ui/react';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { API_URL } from '../../config/api';
 // La librería de iconos para el botón ya no es necesaria aquí.
 
 const AdminAuditoria = () => {
@@ -14,14 +15,13 @@ const AdminAuditoria = () => {
   const [logs, setLogs] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // --- 1. Cargar logs de auditoría (fetchLogs ya existe) ---
   const fetchLogs = async () => {
     // Usamos 'false' solo después del primer fetch para evitar el spinner infinito
     // en la recarga continua. El primer fetch del useEffect lo maneja.
     if (!token) return; 
 
     try {
-      const response = await fetch('http://localhost:8181/api/auditorias/getAll', {
+      const response = await fetch(`${API_URL}/auditorias/getAll`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (!response.ok) throw new Error('Error al cargar la auditoría');
@@ -42,7 +42,6 @@ const AdminAuditoria = () => {
     }
   };
 
-  // --- 2. IMPLEMENTACIÓN DEL POLLING AUTOMÁTICO ---
   useEffect(() => {
     if (token) {
       // 2a. Realiza la primera carga inmediatamente
@@ -59,7 +58,6 @@ const AdminAuditoria = () => {
   }, [token]);
 
 
-  // ... (getActionColor y formatFecha helpers sin cambios) ...
   const getActionColor = (action) => {
     switch (action) {
       case 'INSERT': return 'green';

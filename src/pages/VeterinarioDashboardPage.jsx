@@ -12,8 +12,8 @@ import { SearchIcon } from '@chakra-ui/icons';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { FaSyringe, FaNotesMedical, FaSave } from 'react-icons/fa';
+import { API_URL } from '../config/api';
 
-// --- 1. LISTA DE ESTADOS DE SALUD DISPONIBLES ---
 const estadoSaludOptions = [
   'Estable', 
   'Observación', 
@@ -65,7 +65,7 @@ const VeterinarioDashboardPage = () => {
       }
       setIsLoadingPets(true);
       try {
-        const catRes = await fetch('http://localhost:8181/api/vacunas/getAll', {
+        const catRes = await fetch(`${API_URL}/vacunas/getAll`, {
            headers: { 'Authorization': `Bearer ${token}` }
         });
         if (!catRes.ok) throw new Error('No se pudo cargar el catálogo de vacunas.');
@@ -74,7 +74,7 @@ const VeterinarioDashboardPage = () => {
         const vacunasActivas = catalogData.filter(v => v.estado === 'ACTIVO');
         setVacunaCatalog(vacunasActivas);
         
-        const petsRes = await fetch('http://localhost:8181/api/mascotas/getAll', {
+        const petsRes = await fetch(`${API_URL}/mascotas/getAll`, {
            headers: { 'Authorization': `Bearer ${token}` }
         });
         if (!petsRes.ok) throw new Error('No se pudo cargar la lista de mascotas.');
@@ -107,14 +107,14 @@ const VeterinarioDashboardPage = () => {
     setDiagForm(prev => ({ ...prev, estadoSalud: '' })); // Resetear estadoSalud
 
     try {
-      const petRes = await fetch(`http://localhost:8181/api/mascotas/secure-search/${petId}`, {
+      const petRes = await fetch(`${API_URL}/mascotas/secure-search/${petId}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const petData = await petRes.json();
       if (!petRes.ok) throw new Error(petData.message || 'Error al buscar mascota.');
       setCurrentPet(petData);
 
-      const histRes = await fetch(`http://localhost:8181/api/historiales/by-mascota/${petId}`, {
+      const histRes = await fetch(`${API_URL}/historiales/by-mascota/${petId}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (!histRes.ok) throw new Error('No se pudo cargar el historial.');
@@ -124,10 +124,10 @@ const VeterinarioDashboardPage = () => {
 
       if (histData && histData.idHistorial) {
         const [diagRes, vacRes] = await Promise.all([
-          fetch(`http://localhost:8181/api/diagnosticos/by-historial/${histData.idHistorial}`, {
+          fetch(`${API_URL}/diagnosticos/by-historial/${histData.idHistorial}`, {
             headers: { 'Authorization': `Bearer ${token}` }
           }),
-          fetch(`http://localhost:8181/api/aplicaciones-vacuna/by-historial/${histData.idHistorial}`, {
+          fetch(`${API_URL}/aplicaciones-vacuna/by-historial/${histData.idHistorial}`, {
             headers: { 'Authorization': `Bearer ${token}` }
           })
         ]);
@@ -162,7 +162,7 @@ const VeterinarioDashboardPage = () => {
         notas: historialNotes, 
       };
       
-      const res = await fetch(`http://localhost:8181/api/historiales/save`, {
+      const res = await fetch(`${API_URL}/historiales/save`, {
          method: 'POST',
          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
          body: JSON.stringify(payload)
@@ -193,7 +193,7 @@ const VeterinarioDashboardPage = () => {
         ...diagForm,
         historial: { idHistorial: historial.idHistorial },
       };
-      const res = await fetch(`http://localhost:8181/api/diagnosticos/save`, {
+      const res = await fetch(`${API_URL}/diagnosticos/save`, {
          method: 'POST',
          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
          body: JSON.stringify(payload)
@@ -223,7 +223,7 @@ const VeterinarioDashboardPage = () => {
         historial: { idHistorial: historial.idHistorial },
         vacuna: { idVacuna: parseInt(vacForm.idVacuna) }
       };
-      const res = await fetch(`http://localhost:8181/api/aplicaciones-vacuna/save`, {
+      const res = await fetch(`${API_URL}/aplicaciones-vacuna/save`, {
          method: 'POST',
          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
          body: JSON.stringify(payload)
@@ -296,7 +296,7 @@ const VeterinarioDashboardPage = () => {
                     }}
                   >
                     <Image
-                      src={pet.img || '/images/pets/default.png'}
+                      src={pet.img || '/images/pets/default.svg'}
                       alt={pet.nombre}
                       boxSize="100px"
                       objectFit="cover"
@@ -331,7 +331,7 @@ const VeterinarioDashboardPage = () => {
             <Box bg="brand.100" p={5} borderRadius="lg" shadow="md" alignSelf="flex-start" w="100%">
               <HStack spacing={4} align="center">
                 <Image
-                  src={currentPet.img || '/images/pets/default.png'}
+                  src={currentPet.img || '/images/pets/default.svg'}
                   alt={currentPet.nombre}
                   boxSize="80px"
                   objectFit="cover"
@@ -369,7 +369,6 @@ const VeterinarioDashboardPage = () => {
                         <Textarea name="diagnostico" value={diagForm.diagnostico} onChange={handleDiagFormChange} />
                       </FormControl>
                       
-                      {/* --- 2. CAMPO MODIFICADO A SELECT --- */}
                       <FormControl>
                         <FormLabel>Estado de Salud</FormLabel>
                         <Select 
@@ -466,7 +465,6 @@ const VeterinarioDashboardPage = () => {
               </Tabs>
             </Box>
             
-            {/* --- 3. BLOQUE DE NOTAS MOVIDO ABAJO --- */}
             <Box w="100%" bg="white" p={5} borderRadius="lg" shadow="md">
               <Heading size="sm" mb={4}>Notas Generales del Historial</Heading>
               <FormControl>

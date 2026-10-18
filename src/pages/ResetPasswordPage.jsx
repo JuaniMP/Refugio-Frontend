@@ -1,10 +1,11 @@
 import {
   Box, Button, FormControl, FormLabel, Input, VStack, Heading, Text,
   useToast, HStack, PinInput, PinInputField,
-  Progress // <-- 1. Importar el componente Progress
+  Progress
 } from '@chakra-ui/react';
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { API_URL } from '../config/api';
 
 const ResetPasswordPage = () => {
   const [code, setCode] = useState('');
@@ -12,7 +13,6 @@ const ResetPasswordPage = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
-  // --- 2. Estado para el medidor de fuerza ---
   const [passwordStrength, setPasswordStrength] = useState({ value: 0, color: 'red' });
   
   const toast = useToast();
@@ -33,7 +33,6 @@ const ResetPasswordPage = () => {
   }, [email, navigate, toast]);
 
 
-  // --- 3. Función para calcular y actualizar la fuerza ---
   const handlePasswordStrengthChange = (e) => {
     const pass = e.target.value;
     setPassword(pass); // Actualizar el estado de la contraseña
@@ -75,7 +74,7 @@ const ResetPasswordPage = () => {
     };
 
     try {
-      const response = await fetch('http://localhost:8181/api/usuarios/reset-password', {
+      const response = await fetch(`${API_URL}/usuarios/reset-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -137,13 +136,12 @@ const ResetPasswordPage = () => {
             </HStack>
           </FormControl>
 
-          {/* --- 4. CAMPO NUEVA CONTRASEÑA CON MEDIDOR --- */}
           <FormControl isRequired>
             <FormLabel>Nueva Contraseña (mín. 8 caracteres)</FormLabel>
             <Input 
               type="password" 
               value={password}
-              onChange={handlePasswordStrengthChange} // <-- Usamos el nuevo handler
+              onChange={handlePasswordStrengthChange}
             />
             {/* Medidor de contraseña */}
             <Progress colorScheme={passwordStrength.color} size="xs" value={passwordStrength.value} mt={2} />

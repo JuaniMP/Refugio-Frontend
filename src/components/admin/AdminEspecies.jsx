@@ -8,6 +8,7 @@ import {
 import { AddIcon, EditIcon } from '@chakra-ui/icons'; 
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { API_URL } from '../../config/api';
 
 const AdminEspecies = () => {
   const { token } = useAuth();
@@ -23,7 +24,7 @@ const AdminEspecies = () => {
   const fetchEspecies = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('http://localhost:8181/api/especies/getAll', {
+      const response = await fetch(`${API_URL}/especies/getAll`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (!response.ok) throw new Error('Error al cargar especies');
@@ -46,7 +47,6 @@ const AdminEspecies = () => {
     }
   }, [token]);
 
-  // ... (handleOpenModal sin cambios) ...
   const handleOpenModal = (especie = null) => {
     if (especie) {
       setCurrentEspecie(especie);
@@ -58,7 +58,6 @@ const AdminEspecies = () => {
     onOpen();
   };
   
-  // ... (handleSave sin cambios) ...
   const handleSave = async () => {
     let payload = {};
 
@@ -75,7 +74,7 @@ const AdminEspecies = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:8181/api/especies/save', {
+      const response = await fetch(`${API_URL}/especies/save`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -98,7 +97,6 @@ const AdminEspecies = () => {
     }
   };
 
-  // ... (handleToggleEstado sin cambios) ...
   const handleToggleEstado = async (especie) => {
     const nuevoEstado = especie.estado === 'ACTIVO' ? 'INACTIVO' : 'ACTIVO';
     const payload = {
@@ -107,7 +105,7 @@ const AdminEspecies = () => {
     };
     
     try {
-      const response = await fetch('http://localhost:8181/api/especies/save', {
+      const response = await fetch(`${API_URL}/especies/save`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

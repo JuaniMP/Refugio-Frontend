@@ -7,6 +7,7 @@ import {
 import { AddIcon } from '@chakra-ui/icons';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { API_URL } from '../../config/api';
 
 const AdminRefugio = () => {
   const { token } = useAuth();
@@ -29,7 +30,7 @@ const AdminRefugio = () => {
     setIsLoading(true);
     try {
       const headers = { 'Authorization': `Bearer ${token}` };
-      const refugioRes = await fetch('http://localhost:8181/api/refugios/getAll', { headers });
+      const refugioRes = await fetch(`${API_URL}/refugios/getAll`, { headers });
       const refugiosData = await refugioRes.json();
       
       if (refugiosData.length > 0) {
@@ -37,7 +38,7 @@ const AdminRefugio = () => {
         setRefugio(mainRefugio);
         setFormData(mainRefugio);
 
-        const telefonosRes = await fetch('http://localhost:8181/api/telefonos-refugio/getAll', { headers });
+        const telefonosRes = await fetch(`${API_URL}/telefonos-refugio/getAll`, { headers });
         const telefonosData = await telefonosRes.json();
         setTelefonos(telefonosData.filter(t => t.idRefugio === mainRefugio.idRefugio));
         
@@ -65,7 +66,7 @@ const AdminRefugio = () => {
       payload.idRefugio = refugio.idRefugio;
     }
     try {
-      await fetch('http://localhost:8181/api/refugios/save', {
+      await fetch(`${API_URL}/refugios/save`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -92,7 +93,7 @@ const AdminRefugio = () => {
       estado: 'ACTIVO'
     };
     try {
-      await fetch('http://localhost:8181/api/telefonos-refugio/save', {
+      await fetch(`${API_URL}/telefonos-refugio/save`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -117,7 +118,7 @@ const AdminRefugio = () => {
     };
     
     try {
-      const response = await fetch('http://localhost:8181/api/telefonos-refugio/save', {
+      const response = await fetch(`${API_URL}/telefonos-refugio/save`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

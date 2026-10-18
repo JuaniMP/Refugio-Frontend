@@ -5,6 +5,7 @@ import {
 import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { API_URL } from '../config/api';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -25,7 +26,7 @@ const LoginPage = () => {
     };
 
     try {
-      const response = await fetch('http://localhost:8181/api/usuarios/login', {
+      const response = await fetch(`${API_URL}/usuarios/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -71,13 +72,12 @@ const LoginPage = () => {
         status: 'success',
       });
 
-      // --- ⬇️ AQUÍ ESTÁ LA MODIFICACIÓN ⬇️ ---
       if (data.rol === 'AD') {
         navigate('/admin');
       } else if (data.rol === 'C') {
         navigate('/cuidador');
       } else if (data.rol === 'V') {
-        navigate('/veterinario'); // <-- AÑADIDO
+        navigate('/veterinario');
       } else {
         navigate('/'); 
        // Por ahora al inicio

@@ -3,10 +3,11 @@ import {
   SimpleGrid, Stat, StatLabel, StatNumber, Textarea, FormControl, FormLabel,
   Table, Thead, Tbody, Tr, Th, Td, Image, Badge, Button,
   Alert, AlertIcon, AlertTitle, AlertDescription,
-  HStack // <-- Import que faltaba
+  HStack
 } from '@chakra-ui/react';
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { API_URL } from '../config/api';
 
 // --- (Helpers de formatEdad y getStatusColor) ---
 
@@ -39,7 +40,7 @@ const CuidadorDashboardPage = () => {
       if (!zona) return []; // No buscar si no hay zona
       const headers = { 'Authorization': `Bearer ${token}` };
       const petsResponse = await fetch(
-        `http://localhost:8181/api/mascotas/by-zona?zona=${encodeURIComponent(zona)}`, 
+        `${API_URL}/mascotas/by-zona?zona=${encodeURIComponent(zona)}`, 
         { headers }
       );
       if (!petsResponse.ok) {
@@ -59,7 +60,7 @@ const CuidadorDashboardPage = () => {
       }
       try {
         // Fetch 1: Perfil
-        const profileResponse = await fetch('http://localhost:8181/api/cuidadores/me', {
+        const profileResponse = await fetch(`${API_URL}/cuidadores/me`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (!profileResponse.ok) throw new Error('No se pudo cargar tu perfil.');
@@ -68,7 +69,7 @@ const CuidadorDashboardPage = () => {
         setIsLoadingProfile(false);
 
         // Fetch 2: Turno Activo
-        const turnoResponse = await fetch('http://localhost:8181/api/asignaciones/mi-turno-activo', {
+        const turnoResponse = await fetch(`${API_URL}/asignaciones/mi-turno-activo`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (!turnoResponse.ok) throw new Error('No se pudo verificar tu turno.');
@@ -105,7 +106,7 @@ const CuidadorDashboardPage = () => {
   const handleComenzarTurno = async () => {
     setIsSubmitting(true);
     try {
-      const response = await fetch('http://localhost:8181/api/asignaciones/comenzar-turno', {
+      const response = await fetch(`${API_URL}/asignaciones/comenzar-turno`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -133,7 +134,7 @@ const CuidadorDashboardPage = () => {
   const handleTerminarTurno = async () => {
     setIsSubmitting(true);
     try {
-      const response = await fetch('http://localhost:8181/api/asignaciones/terminar-turno', {
+      const response = await fetch(`${API_URL}/asignaciones/terminar-turno`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -165,7 +166,7 @@ const CuidadorDashboardPage = () => {
   
   const handleComentarioBlur = async (idMascota, texto) => {
     try {
-      const response = await fetch('http://localhost:8181/api/asignaciones/guardar-comentario', {
+      const response = await fetch(`${API_URL}/asignaciones/guardar-comentario`, {
         method: 'POST',
         headers: { 
           'Authorization': `Bearer ${token}`,
@@ -286,7 +287,7 @@ const CuidadorDashboardPage = () => {
                     <Tr key={m.idMascota}>
                       <Td>
                         <Image 
-                          src={m.img || '/images/pets/default.png'} 
+                          src={m.img || '/images/pets/default.svg'} 
                           alt={m.nombre} 
                           boxSize="60px" 
                           objectFit="cover" 

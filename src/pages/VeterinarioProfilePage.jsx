@@ -6,6 +6,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { ArrowBackIcon } from '@chakra-ui/icons';
+import { API_URL } from '../config/api';
 
 const VeterinarioProfilePage = () => {
   const { token } = useAuth();
@@ -22,7 +23,7 @@ const VeterinarioProfilePage = () => {
         return;
       }
       try {
-        const response = await fetch('http://localhost:8181/api/veterinarios/me', {
+        const response = await fetch(`${API_URL}/veterinarios/me`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (!response.ok) {

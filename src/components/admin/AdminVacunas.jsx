@@ -8,6 +8,7 @@ import {
 import { AddIcon, EditIcon } from '@chakra-ui/icons'; 
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { API_URL } from '../../config/api';
 
 // --- ESTE ES EL NUEVO COMPONENTE ---
 const AdminVacunas = () => {
@@ -24,7 +25,7 @@ const AdminVacunas = () => {
   const fetchVacunas = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('http://localhost:8181/api/vacunas/getAll', {
+      const response = await fetch(`${API_URL}/vacunas/getAll`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (!response.ok) throw new Error('Error al cargar vacunas');
@@ -44,7 +45,7 @@ const AdminVacunas = () => {
     if (token) {
       fetchVacunas();
     }
-  }, [token, toast]); // <-- Se corrigió la dependencia de fetchEspecies a fetchVacunas y toast
+  }, [token, toast]);
 
   const handleOpenModal = (vacuna = null) => {
     if (vacuna) {
@@ -73,7 +74,7 @@ const AdminVacunas = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:8181/api/vacunas/save', {
+      const response = await fetch(`${API_URL}/vacunas/save`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -104,7 +105,7 @@ const AdminVacunas = () => {
     };
     
     try {
-      const response = await fetch('http://localhost:8181/api/vacunas/save', {
+      const response = await fetch(`${API_URL}/vacunas/save`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

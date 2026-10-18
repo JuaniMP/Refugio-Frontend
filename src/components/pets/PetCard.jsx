@@ -54,11 +54,10 @@ const PetCard = ({ pet, getStatusDetails, formatEdad }) => {
         p={4}
         boxShadow="md"
     >
-      {/* --- ⬇️ IMPLEMENTACIÓN DEL ZOOM EN LA FOTO ⬇️ --- */}
       <Box overflow="hidden" borderRadius="md" height="200px" width="100%">
           <Image 
-              as={motion.img} // <-- Usamos motion.img
-              src={pet.img || '/images/pets/default.png'} 
+              as={motion.img}
+              src={pet.img || '/images/pets/default.svg'} 
               alt={`Foto de ${pet.nombre}`} 
               borderRadius="md" 
               objectFit="cover"

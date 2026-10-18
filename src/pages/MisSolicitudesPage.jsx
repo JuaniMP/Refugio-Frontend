@@ -6,6 +6,7 @@ import {
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
+import { API_URL } from '../config/api';
 
 const MisSolicitudesPage = () => {
   const { token, userRol } = useAuth();
@@ -39,7 +40,7 @@ const MisSolicitudesPage = () => {
     setIsLoading(true);
     try {
       // 1. Llama al nuevo endpoint: /solicitudes/by-adoptante/me
-      const response = await fetch('http://localhost:8181/api/solicitudes/by-adoptante/me', {
+      const response = await fetch(`${API_URL}/solicitudes/by-adoptante/me`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (!response.ok) throw new Error('Error al cargar tus solicitudes.');

@@ -8,6 +8,7 @@ import { useAuth } from '../../context/AuthContext';
 // 1. Importar la librería de gráficos que instalamos
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import { Doughnut } from 'react-chartjs-2';
+import { API_URL } from '../../config/api';
 
 // 2. Registrar los componentes del gráfico
 ChartJS.register(ArcElement, Tooltip, Legend);
@@ -34,11 +35,11 @@ const AdminEstadisticas = () => {
     try {
       // 3. Hacemos todas las llamadas a la API en paralelo
       const [mascotas, adoptantes, veterinarios, cuidadores, solicitudes] = await Promise.all([
-        fetchWithAuth('http://localhost:8181/api/mascotas/getAll'),
-        fetchWithAuth('http://localhost:8181/api/adoptantes/getAll'),
-        fetchWithAuth('http://localhost:8181/api/veterinarios/getAll'),
-        fetchWithAuth('http://localhost:8181/api/cuidadores/getAll'),
-        fetchWithAuth('http://localhost:8181/api/solicitudes/getAll')
+        fetchWithAuth(`${API_URL}/mascotas/getAll`),
+        fetchWithAuth(`${API_URL}/adoptantes/getAll`),
+        fetchWithAuth(`${API_URL}/veterinarios/getAll`),
+        fetchWithAuth(`${API_URL}/cuidadores/getAll`),
+        fetchWithAuth(`${API_URL}/solicitudes/getAll`)
       ]);
 
       // 4. Procesamos los datos para las estadísticas

@@ -3,12 +3,12 @@ import {
   Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody, ModalCloseButton,
   useDisclosure, FormControl, FormLabel, Input, Select, VStack, Spinner, Text,
   HStack,
-  Switch // <-- 1. Importar Switch
+  Switch
 } from '@chakra-ui/react';
-// <-- 2. Quitar DeleteIcon
 import { AddIcon, EditIcon } from '@chakra-ui/icons'; 
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { API_URL } from '../../config/api';
 
 const AdminRazas = () => {
   const { token } = useAuth();
@@ -24,20 +24,19 @@ const AdminRazas = () => {
     idEspecie: ''
   });
 
-  // --- 3. Cargar datos (CON SORT POR ID) ---
   const fetchData = async () => {
     setIsLoading(true);
     try {
       const headers = { 'Authorization': `Bearer ${token}` };
       
-      const razasRes = await fetch('http://localhost:8181/api/razas/getAll', { headers });
+      const razasRes = await fetch(`${API_URL}/razas/getAll`, { headers });
       let razasData = await razasRes.json();
       
       // --- ORDENAR: Por ID ascendente ---
       razasData.sort((a, b) => a.idRaza - b.idRaza);
       setRazas(razasData);
 
-      const especiesRes = await fetch('http://localhost:8181/api/especies/getAll', { headers });
+      const especiesRes = await fetch(`${API_URL}/especies/getAll`, { headers });
       if (!especiesRes.ok) throw new Error('Error al cargar Especies');
       const especiesData = await especiesRes.json();
       setEspecies(especiesData);
@@ -59,7 +58,6 @@ const AdminRazas = () => {
     }
   }, [token]);
 
-  // ... (handleOpenModal sin cambios) ...
   const handleOpenModal = (raza = null) => {
     if (raza) {
       setCurrentRaza(raza);
@@ -77,7 +75,6 @@ const AdminRazas = () => {
     onOpen();
   };
 
-  // --- 4. Guardar (Actualizado para 'estado') ---
   const handleSave = async () => {
     let payload = {};
 
@@ -98,7 +95,7 @@ const AdminRazas = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:8181/api/razas/save', {
+      const response = await fetch(`${API_URL}/razas/save`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -121,7 +118,6 @@ const AdminRazas = () => {
     }
   };
   
-  // --- 5. AÑADIR 'handleToggleEstado' ---
   const handleToggleEstado = async (raza) => {
     const nuevoEstado = raza.estado === 'ACTIVO' ? 'INACTIVO' : 'ACTIVO';
     const payload = {
@@ -130,7 +126,7 @@ const AdminRazas = () => {
     };
     
     try {
-      const response = await fetch('http://localhost:8181/api/razas/save', {
+      const response = await fetch(`${API_URL}/razas/save`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -147,13 +143,11 @@ const AdminRazas = () => {
     }
   };
 
-  // ... (handleChange sin cambios) ...
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
   
-  // ... (isLoading y especies.length === 0 sin cambios) ...
   if (isLoading) {
     return <Spinner size="xl" mx="auto" mt={10} />;
   }
@@ -164,7 +158,6 @@ const AdminRazas = () => {
 
   return (
     <Box>
-      {/* --- 6. Cambiar estilo del Botón --- */}
       <Button 
         leftIcon={<AddIcon />} 
         bg="brand.800" // Color menta
@@ -176,7 +169,6 @@ const AdminRazas = () => {
         Crear Nueva Raza
       </Button>
 
-      {/* --- 7. Modificar Tabla --- */}
       <Table variant="striped">
         <Thead>
           <Tr>

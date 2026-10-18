@@ -5,6 +5,7 @@ import {
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext'; 
+import { API_URL } from '../config/api';
 
 const ForceResetPasswordPage = () => {
   const [password, setPassword] = useState('');
@@ -14,7 +15,6 @@ const ForceResetPasswordPage = () => {
   const toast = useToast();
   const navigate = useNavigate();
   
-  // --- 1. OBTENER EL ROL Y EL TOKEN ---
   const { token, userRol } = useAuth(); 
 
   const handlePasswordChange = (e) => {
@@ -40,7 +40,7 @@ const ForceResetPasswordPage = () => {
 
     try {
       // Usamos el endpoint que ya existe en el backend
-      const response = await fetch('http://localhost:8181/api/usuarios/force-reset-password', { 
+      const response = await fetch(`${API_URL}/usuarios/force-reset-password`, { 
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -61,18 +61,16 @@ const ForceResetPasswordPage = () => {
         status: 'success',
       });
       
-      // --- 2. ⬇️ AQUÍ ESTÁ LA MODIFICACIÓN ⬇️ ---
       // Redirigir según el rol que ya tenemos guardado
       if (userRol === 'AD') {
         navigate('/admin');
       } else if (userRol === 'C') {
         navigate('/cuidador');
       } else if (userRol === 'V') {
-        navigate('/veterinario'); // <-- AÑADIDO
+        navigate('/veterinario');
       } else {
         navigate('/');
       }
-      // --- 2. ⬆️ FIN DE LA MODIFICACIÓN ⬆️ ---
 
     } catch (error) {
       toast({

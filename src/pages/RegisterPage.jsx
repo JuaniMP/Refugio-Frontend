@@ -14,6 +14,7 @@ import {
 } from '@chakra-ui/react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { API_URL } from '../config/api';
 
 const RegisterPage = () => {
   // Estado para controlar el paso actual (1 o 2)
@@ -119,7 +120,7 @@ const RegisterPage = () => {
     };
 
     try {
-      const response = await fetch('http://localhost:8181/api/adoptantes/save', { 
+      const response = await fetch(`${API_URL}/adoptantes/save`, { 
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -142,7 +143,6 @@ const RegisterPage = () => {
       
       // Redirigir a la página de verificación, pasando el email
       navigate('/verificar-cuenta', { state: { email: formData.email } });
-      // --- FIN DE CAMBIOS ---
 
     } catch (error) {
       toast({
