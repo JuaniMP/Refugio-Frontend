@@ -1,28 +1,32 @@
-// Archivo: src/App.jsx
+import { lazy, Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
+import { Center, Spinner } from '@chakra-ui/react';
 import Layout from './components/layout/Layout';
-import HomePage from './pages/HomePage';
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
-import ProfilePage from './pages/ProfilePage';
 import AdminRoute from './components/auth/AdminRoute';
-import AdminDashboardPage from './pages/AdminDashboardPage';
-import VerifyAccountPage from './pages/VerifyAccountPage';
-import ForgotPasswordPage from './pages/ForgotPasswordPage';
-import ResetPasswordPage from './pages/ResetPasswordPage';
-import ForceResetPasswordPage from './pages/ForceResetPasswordPage';
 import CuidadorRoute from './components/auth/CuidadorRoute';
-import CuidadorDashboardPage from './pages/CuidadorDashboardPage';
 import VeterinarioRoute from './components/auth/VeterinarioRoute';
-import VeterinarioDashboardPage from './pages/VeterinarioDashboardPage';
-import VeterinarioProfilePage from './pages/VeterinarioProfilePage';
-import SolicitudPage from './pages/SolicitudPage';
-import MisSolicitudesPage from './pages/MisSolicitudesPage'; // <-- NUEVA IMPORTACIÓN
 
+
+// Cada página se descarga solo cuando se visita (Chart.js no va en la carga inicial)
+const HomePage = lazy(() => import('./pages/HomePage'));
+const LoginPage = lazy(() => import('./pages/LoginPage'));
+const RegisterPage = lazy(() => import('./pages/RegisterPage'));
+const ProfilePage = lazy(() => import('./pages/ProfilePage'));
+const AdminDashboardPage = lazy(() => import('./pages/AdminDashboardPage'));
+const VerifyAccountPage = lazy(() => import('./pages/VerifyAccountPage'));
+const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage'));
+const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'));
+const ForceResetPasswordPage = lazy(() => import('./pages/ForceResetPasswordPage'));
+const CuidadorDashboardPage = lazy(() => import('./pages/CuidadorDashboardPage'));
+const VeterinarioDashboardPage = lazy(() => import('./pages/VeterinarioDashboardPage'));
+const VeterinarioProfilePage = lazy(() => import('./pages/VeterinarioProfilePage'));
+const SolicitudPage = lazy(() => import('./pages/SolicitudPage'));
+const MisSolicitudesPage = lazy(() => import('./pages/MisSolicitudesPage'));
 
 function App() {
   return (
     <Layout>
+      <Suspense fallback={<Center py={20}><Spinner size="xl" /></Center>}>
       <Routes>
         {/* Rutas Públicas */}
         <Route path="/" element={<HomePage />} />
@@ -35,7 +39,7 @@ function App() {
         
         {/* Rutas Privadas (Adoptante) */}
         <Route path="/perfil" element={<ProfilePage />} />
-        <Route path="/mis-solicitudes" element={<MisSolicitudesPage />} /> {/* <-- RUTA AÑADIDA */}
+        <Route path="/mis-solicitudes" element={<MisSolicitudesPage />} />
 
         {/* Rutas de Empleados y Admin */}
         <Route path="/force-reset-password" element={<ForceResetPasswordPage />} />
@@ -72,6 +76,7 @@ function App() {
           } 
         />
       </Routes>
+      </Suspense>
     </Layout>
   );
 }

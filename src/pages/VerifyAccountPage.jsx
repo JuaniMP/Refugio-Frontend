@@ -4,6 +4,7 @@ import {
 } from '@chakra-ui/react';
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { API_URL } from '../config/api';
 
 const VerifyAccountPage = () => {
   const [code, setCode] = useState('');
@@ -37,7 +38,7 @@ const VerifyAccountPage = () => {
     };
 
     try {
-      const response = await fetch('http://localhost:8181/api/usuarios/verify-account', {
+      const response = await fetch(`${API_URL}/usuarios/verify-account`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

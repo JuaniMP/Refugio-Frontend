@@ -20,7 +20,7 @@ import {
   FaUsers, 
   FaClipboardList,
   FaBookMedical,
-  FaHandHoldingHeart // <-- 1. AÑADIR ÍCONO
+  FaHandHoldingHeart
 } from 'react-icons/fa';
 
 // Importa los componentes
@@ -32,9 +32,8 @@ import AdminAuditoria from '../components/admin/AdminAuditoria';
 import AdminEspecies from '../components/admin/AdminEspecies';
 import AdminRazas from '../components/admin/AdminRazas';
 import AdminVacunas from '../components/admin/AdminVacunas';
-import AdminSolicitudes from '../components/admin/AdminSolicitudes'; // <-- 2. IMPORTAR NUEVO COMPONENTE
+import AdminSolicitudes from '../components/admin/AdminSolicitudes';
 
-// ... (El componente 'AnimatedTab' no cambia) ...
 const AnimatedTab = ({ icon, children }) => {
   return (
     <Tab 
@@ -99,7 +98,7 @@ const AdminDashboardPage = () => {
           <AnimatedTab icon={FaDog}>Mascotas</AnimatedTab>
           <AnimatedTab icon={FaUsers}>Personal</AnimatedTab>
           <AnimatedTab icon={FaBookMedical}>Vacunas</AnimatedTab>
-          <AnimatedTab icon={FaHandHoldingHeart}>Solicitudes</AnimatedTab> {/* <-- 3. AÑADIR PESTAÑA */}
+          <AnimatedTab icon={FaHandHoldingHeart}>Solicitudes</AnimatedTab>
           <AnimatedTab icon={FaClipboardList}>Auditoría</AnimatedTab>
         </TabList>
 
@@ -126,7 +125,7 @@ const AdminDashboardPage = () => {
             <AdminVacunas />
           </TabPanel>
           <TabPanel>
-            <AdminSolicitudes /> {/* <-- 4. AÑADIR PANEL */}
+            <AdminSolicitudes />
           </TabPanel>
           <TabPanel>
             <AdminAuditoria />

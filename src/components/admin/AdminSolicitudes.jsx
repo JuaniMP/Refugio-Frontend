@@ -3,11 +3,12 @@ import {
   Heading, Spinner, Text, Badge, VStack, HStack, Alert, AlertIcon,
   Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalFooter, ModalCloseButton,
   useDisclosure,
-  Textarea // <-- ¡CORRECCIÓN: Textarea AÑADIDO!
+  Textarea
 } from '@chakra-ui/react';
 import { CheckIcon, CloseIcon, ViewIcon, MinusIcon } from '@chakra-ui/icons'; 
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { API_URL } from '../../config/api';
 
 const AdminSolicitudes = () => {
   const { token } = useAuth();
@@ -22,7 +23,7 @@ const AdminSolicitudes = () => {
   const fetchSolicitudes = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('http://localhost:8181/api/solicitudes/getAll', {
+      const response = await fetch(`${API_URL}/solicitudes/getAll`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (!response.ok) throw new Error('Error al cargar solicitudes');
@@ -70,12 +71,12 @@ const AdminSolicitudes = () => {
     let statusUpdate = ''; 
 
     if (action === 'APROBAR') {
-      endpoint = `/api/solicitudes/${id}/aprobar`;
+      endpoint = `/solicitudes/${id}/aprobar`;
     } else if (action === 'RECHAZAR') {
-      endpoint = `/api/solicitudes/save`;
+      endpoint = `/solicitudes/save`;
       statusUpdate = 'RECHAZADA';
     } else if (action === 'CANCELAR') {
-      endpoint = `/api/solicitudes/save`;
+      endpoint = `/solicitudes/save`;
       statusUpdate = 'CANCELADA';
     } else {
         setIsProcessing(false);
@@ -93,7 +94,7 @@ const AdminSolicitudes = () => {
     }
 
     try {
-      const response = await fetch(`http://localhost:8181${endpoint}`, {
+      const response = await fetch(`${API_URL}${endpoint}`, {
         method: method,
         headers: { 
             'Content-Type': 'application/json', 

@@ -7,19 +7,15 @@ import {
   SimpleGrid,
   Heading,
   Image,
-  FormHelperText // <-- 1. IMPORTAR FormHelperText
+  FormHelperText
 } from '@chakra-ui/react';
 import { AddIcon, EditIcon } from '@chakra-ui/icons';
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { ZONAS } from '../../constants/refugio';
+import { API_URL } from '../../config/api';
 
-// --- (Lista de zonas copiada de AdminCuidadores) ---
-const zonasOptions = [
-  'Patio Perros Grandes', 'Patio Perros Pequeños', 'Área de Gatos (Adultos)', 
-  'Área de Gatos (Gatitos)', 'Sala de Cuarentena', 'Recepción', 'Área Post-Operatoria'
-];
 
-// ... (formatEdad sin cambios) ...
 const formatEdad = (meses) => {
   if (!meses || meses <= 0) return 'N/A';
   if (meses < 12) return `${meses} ${meses === 1 ? 'mes' : 'meses'}`;
@@ -57,16 +53,15 @@ const AdminMascotas = () => {
     img: '', idRaza: '', idRefugio: '', zonaAsignada: ''
   });
 
-  // ... (fetchData y useEffect [token] sin cambios) ...
   const fetchData = useCallback(async () => {
     setIsLoading(true);
     try {
       const headers = { 'Authorization': `Bearer ${token}` };
       const [mascotasRes, razasRes, especiesRes, refugiosRes] = await Promise.all([
-        fetch('http://localhost:8181/api/mascotas/getAll', { headers }),
-        fetch('http://localhost:8181/api/razas/getAll', { headers }),
-        fetch('http://localhost:8181/api/especies/getAll', { headers }),
-        fetch('http://localhost:8181/api/refugios/getAll', { headers })
+        fetch(`${API_URL}/mascotas/getAll`, { headers }),
+        fetch(`${API_URL}/razas/getAll`, { headers }),
+        fetch(`${API_URL}/especies/getAll`, { headers }),
+        fetch(`${API_URL}/refugios/getAll`, { headers })
       ]);
 
       if (!razasRes.ok) throw new Error('Error al cargar Razas');
@@ -87,7 +82,6 @@ const AdminMascotas = () => {
 
   useEffect(() => { if (token) fetchData(); }, [fetchData, token]);
 
-  // ... (useEffect [selectedEspecieId] sin cambios) ...
   useEffect(() => {
     const selectedEspecie = especies.find(e => e.idEspecie === parseInt(selectedEspecieId));
     const isEspecieActive = selectedEspecie?.estado === 'ACTIVO';
@@ -109,7 +103,6 @@ const AdminMascotas = () => {
   }, [selectedEspecieId, razas, especies, formData.idRaza]);
 
   
-  // ... (resetForm, handleOpenCreateModal, handleOpenEditModal sin cambios) ...
   const resetForm = () => {
     setFormData({
       nombre: '', sexo: '', estado: '',
@@ -161,7 +154,6 @@ const AdminMascotas = () => {
     onOpen(); 
   };
 
-  // ... (handleSpeciesChange, handleChange, handleAge... sin cambios) ...
   const handleSpeciesChange = (e) => {
     const newEspecieId = e.target.value;
     setSelectedEspecieId(newEspecieId); 
@@ -178,7 +170,6 @@ const AdminMascotas = () => {
   const handleAgeUnitChange = (e) => setAgeUnit(e.target.value);
   const handleAgeValueChange = (e) => setAgeValue(e.target.value);
 
-  // --- 2. CAMBIO: NUEVO HANDLER PARA EL ESTADO ---
   // Este handler especial limpiará la zona si se elige "Adoptada"
   const handleEstadoChange = (e) => {
     const newEstado = e.target.value;
@@ -198,7 +189,6 @@ const AdminMascotas = () => {
     }
   };
 
-  // --- 3. CAMBIO: handleSave MODIFICADO ---
   const handleSave = async () => {
     
     const numericValue = parseInt(ageValue) || 0;
@@ -215,7 +205,6 @@ const AdminMascotas = () => {
        toast({ title: 'Debes asignar una zona', description: 'La zona solo puede estar vacía si el estado es "Adoptada".', status: 'error' });
        return;
     }
-    // --- FIN VALIDACIÓN ---
 
     if (edadMesesCalculada < 0) { 
       toast({ title: 'La edad no es válida', status: 'error' });
@@ -236,7 +225,7 @@ const AdminMascotas = () => {
     };
 
     try {
-      const response = await fetch('http://localhost:8181/api/mascotas/save', {
+      const response = await fetch(`${API_URL}/mascotas/save`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -266,7 +255,6 @@ const AdminMascotas = () => {
     }
   };
   
-  // ... (if isLoading, if data.length === 0, y helpers renderOptions sin cambios) ...
   if (isLoading) {
     return <Spinner size="xl" mx="auto" mt={10} />;
   }
@@ -316,7 +304,6 @@ const AdminMascotas = () => {
         Crear Nueva Mascota
       </Button>
 
-      {/* ... (Tabla sin cambios, ya muestra la zona) ... */}
       <Table variant="striped">
         <Thead>
           <Tr>
@@ -371,7 +358,6 @@ const AdminMascotas = () => {
         </Tbody>
       </Table>
 
-      {/* --- 4. CAMBIO: Modal MODIFICADO --- */}
       <Modal isOpen={isOpen} onClose={onClose} size="xl">
         <ModalOverlay />
         <ModalContent>
@@ -379,7 +365,6 @@ const AdminMascotas = () => {
           <ModalCloseButton />
           <ModalBody>
             <VStack spacing={4} align="stretch" p={4}>
-              {/* ... (Grids de Nombre, Refugio, Especie, Raza, Img, Sexo, Edad sin cambios) ... */}
               <SimpleGrid columns={2} spacing={4}>
                 <FormControl isRequired>
                   <FormLabel>Nombre</FormLabel>
@@ -462,7 +447,6 @@ const AdminMascotas = () => {
                 </FormControl>
               </SimpleGrid>
 
-              {/* --- CAMPOS MODIFICADOS --- */}
               <SimpleGrid columns={2} spacing={4}>
                 <FormControl isRequired={formData.estado !== 'ADOPTADA'}>
                   <FormLabel>Zona Asignada</FormLabel>
@@ -472,9 +456,9 @@ const AdminMascotas = () => {
                     onChange={handleSelectChange} // <
                     bg="white" 
                     placeholder="Seleccionar..."
-                    isDisabled={formData.estado === 'ADOPTADA'} // <-- Se deshabilita aquí
+                    isDisabled={formData.estado === 'ADOPTADA'}
                   >
-                    {zonasOptions.map(z => <option key={z} value={z}>{z}</option>)}
+                    {ZONAS.map(z => <option key={z} value={z}>{z}</option>)}
                   </Select>
                   {formData.estado === 'ADOPTADA' && (
                     <FormHelperText>
@@ -488,7 +472,7 @@ const AdminMascotas = () => {
                   <Select 
                     name="estado" 
                     value={formData.estado} 
-                    onChange={handleEstadoChange} // <-- Usamos el handler especial
+                    onChange={handleEstadoChange}
                     bg="white" 
                     placeholder="Seleccionar..."
                   >
@@ -499,7 +483,6 @@ const AdminMascotas = () => {
                   </Select>
                 </FormControl>
               </SimpleGrid>
-              {/* --- FIN DE LA MODIFICACIÓN --- */}
 
             </VStack>
           </ModalBody>

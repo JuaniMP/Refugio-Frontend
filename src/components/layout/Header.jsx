@@ -1,14 +1,14 @@
 import {
   Box, Flex, Image, Button, Spacer,
   Menu, MenuButton, MenuList, MenuItem, IconButton, Avatar,
-  HStack, Icon // <-- Asegurar que Icon esté importado
+  HStack, Icon
 } from '@chakra-ui/react';
 import { Link, useLocation } from 'react-router-dom';
 import logoBanner from '../../assets/logo-banner.jpg';
 import { useAuth } from '../../context/AuthContext'; 
 import { FaUserAlt, FaHome } from 'react-icons/fa';
 import { FiLogIn, FiEye } from 'react-icons/fi';
-import { ArrowBackIcon } from '@chakra-ui/icons'; // <-- Importar Icono de Flecha
+import { ArrowBackIcon } from '@chakra-ui/icons';
 
 const Header = () => {
   const { isAuthenticated, logout, userRol } = useAuth(); 
@@ -46,7 +46,6 @@ const Header = () => {
         
         <HStack spacing={4}>
             
-            {/* --- ⬇️ NUEVO BOTÓN DE REGRESO A MASCOTAS ⬇️ --- */}
             {isAdoptanteAndNotHome && (
                 <Button
                     as={Link}

@@ -4,6 +4,7 @@ import {
 } from '@chakra-ui/react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { API_URL } from '../config/api';
 
 const ForgotPasswordPage = () => {
   const [email, setEmail] = useState('');
@@ -16,7 +17,7 @@ const ForgotPasswordPage = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch('http://localhost:8181/api/usuarios/forgot-password', {
+      const response = await fetch(`${API_URL}/usuarios/forgot-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ login: email }),

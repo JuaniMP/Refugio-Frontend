@@ -2,6 +2,7 @@ import { Box, SimpleGrid, Heading, Spinner, Text, VStack } from '@chakra-ui/reac
 import { useState, useEffect } from 'react';
 import PetCard from '../components/pets/PetCard';
 import { useAuth } from '../context/AuthContext'; 
+import { API_URL } from '../config/api';
 
 // Helper function para formatear la edad (extraído de AdminMascotas)
 const formatEdad = (meses) => {
@@ -45,7 +46,7 @@ const HomePage = () => {
         setHasError(false);
         try {
             const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-            const response = await fetch('http://localhost:8181/api/mascotas/getAll', { headers });
+            const response = await fetch(`${API_URL}/mascotas/getAll`, { headers });
             
             if (!response.ok) throw new Error('No se pudo cargar la lista de mascotas.');
             

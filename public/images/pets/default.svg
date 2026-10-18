@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" role="img" aria-label="Mascota sin foto">
+  <rect width="400" height="400" fill="#eef3ec"/>
+  <g fill="#9bb59a">
+    <ellipse cx="200" cy="245" rx="70" ry="58"/>
+    <ellipse cx="128" cy="170" rx="26" ry="34"/>
+    <ellipse cx="176" cy="132" rx="26" ry="36"/>
+    <ellipse cx="224" cy="132" rx="26" ry="36"/>
+    <ellipse cx="272" cy="170" rx="26" ry="34"/>
+  </g>
+</svg>

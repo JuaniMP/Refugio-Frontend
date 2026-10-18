@@ -2,128 +2,33 @@ import {
   Box, Button, useToast, Table, Thead, Tbody, Tr, Th, Td, IconButton,
   Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody, ModalCloseButton,
   useDisclosure, FormControl, FormLabel, Input, Select, VStack, Spinner, Text,
-  HStack, Heading, FormErrorMessage, Stepper, Step, StepIndicator,
-  StepStatus, StepTitle, StepDescription, StepIcon, StepSeparator, useSteps
+  Heading, FormErrorMessage
 } from '@chakra-ui/react';
 import { AddIcon, EditIcon, DeleteIcon } from '@chakra-ui/icons';
 import { useState, useEffect, useCallback } from 'react'; 
 import { useAuth } from '../../context/AuthContext';
+import { ESPECIALIDADES } from '../../constants/refugio';
+import EmpleadoFields from './personal/EmpleadoFields';
+import PersonalFormWizard from './personal/PersonalFormWizard';
+import { validarEmpleado } from './personal/validarEmpleado';
+import { API_URL } from '../../config/api';
 
-// --- Listas predefinidas ---
-const especialidadesOptions = [
-  'Cirugía General', 'Medicina Interna Felina', 'Medicina Interna Canina', 
-  'Dermatología', 'Cardiología', 'Neurología', 'Oncología', 
-  'Oftalmología', 'Anestesiología', 'Fisioterapia'
-];
-// --- Fin Listas ---
-
-// --- Componente de Formulario (Wizard) ---
-const VetFormWizard = ({ formData, formErrors, handleChange, refugios }) => {
-  const { activeStep, setActiveStep } = useSteps({ index: 0, count: 3 });
-
-  const handleNextStep1 = () => setActiveStep(1);
-  const handleNextStep2 = () => setActiveStep(2);
-  const handleBackStep = () => setActiveStep(prev => prev - 1);
-
-  return (
-    <VStack spacing={4}>
-      <Stepper index={activeStep} mb={6} width="100%">
-        <Step>
-          <StepIndicator><StepStatus complete={<StepIcon />} /></StepIndicator>
-          <Box flexShrink='0'>
-            <StepTitle>Datos Personales</StepTitle>
-            <StepDescription>Información básica</StepDescription>
-          </Box>
-          <StepSeparator />
-        </Step>
-        <Step>
-          <StepIndicator><StepStatus complete={<StepIcon />} /></StepIndicator>
-          <Box flexShrink='0'>
-            <StepTitle>Datos del Rol</StepTitle>
-            <StepDescription>Info profesional</StepDescription>
-          </Box>
-          <StepSeparator />
-        </Step>
-        <Step>
-          <StepIndicator><StepStatus complete={<StepIcon />} /></StepIndicator>
-          <Box flexShrink='0'>
-            <StepTitle>Cuenta de Usuario</StepTitle>
-            <StepDescription>Acceso al sistema</StepDescription>
-          </Box>
-        </Step>
-      </Stepper>
-
-      {/* --- PASO 1: DATOS PERSONALES (EMPLEADO) --- */}
-      {activeStep === 0 && (
-        <VStack spacing={4} width="100%">
-          <FormControl isRequired isInvalid={!!formErrors.nombre}>
-            <FormLabel>Nombre Completo</FormLabel>
-            <Input name="nombre" value={formData.nombre} onChange={handleChange} />
-            <FormErrorMessage>{formErrors.nombre}</FormErrorMessage>
-          </FormControl>
-          <FormControl isRequired isInvalid={!!formErrors.cedula}>
-            <FormLabel>Cédula</FormLabel>
-            <Input name="cedula" value={formData.cedula} onChange={handleChange} inputMode="numeric" />
-            <FormErrorMessage>{formErrors.cedula}</FormErrorMessage>
-          </FormControl>
-          <FormControl isInvalid={!!formErrors.telefono}>
-            <FormLabel>Teléfono (10 dígitos)</FormLabel>
-            <Input name="telefono" value={formData.telefono} onChange={handleChange} inputMode="numeric" />
-            <FormErrorMessage>{formErrors.telefono}</FormErrorMessage>
-          </FormControl>
-          <FormControl isRequired isInvalid={!!formErrors.idRefugio}>
-            <FormLabel>Refugio Asignado</FormLabel>
-            <Select name="idRefugio" value={formData.idRefugio} onChange={handleChange} placeholder="Seleccionar...">
-              {refugios.map(r => <option key={r.idRefugio} value={r.idRefugio}>{r.nombre}</option>)}
-            </Select>
-            <FormErrorMessage>{formErrors.idRefugio}</FormErrorMessage>
-          </FormControl>
-          <Button onClick={handleNextStep1} bg="brand.700" color="white" _hover={{ bg: 'brand.900' }} alignSelf="flex-end">Siguiente</Button>
-        </VStack>
-      )}
-
-      {/* --- PASO 2: DATOS DEL ROL (VETERINARIO) --- */}
-      {activeStep === 1 && (
-        <VStack spacing={4} width="100%">
-          <FormControl isRequired isInvalid={!!formErrors.especialidad}>
-            <FormLabel>Especialidad</FormLabel>
-            <Select name="especialidad" value={formData.especialidad} onChange={handleChange} placeholder="Seleccionar...">
-              {especialidadesOptions.map(esp => <option key={esp} value={esp}>{esp}</option>)}
-            </Select>
-            <FormErrorMessage>{formErrors.especialidad}</FormErrorMessage>
-          </FormControl>
-          <FormControl>
-            <FormLabel>Registro Profesional</FormLabel>
-            <Input name="registroProfesional" value={formData.registroProfesional} onChange={handleChange} />
-          </FormControl>
-          <HStack width="100%" justify="space-between">
-            <Button onClick={handleBackStep} variant="ghost">Atrás</Button>
-            <Button onClick={handleNextStep2} bg="brand.700" color="white" _hover={{ bg: 'brand.900' }}>Siguiente</Button>
-          </HStack>
-        </VStack>
-      )}
-      
-      {/* --- PASO 3: DATOS DE USUARIO --- */}
-      {activeStep === 2 && (
-        <VStack spacing={4} width="100%">
-          <FormControl isRequired isInvalid={!!formErrors.login}>
-            <FormLabel>Correo Electrónico (Login)</FormLabel>
-            <Input type="email" name="login" value={formData.login} onChange={handleChange} />
-            <FormErrorMessage>{formErrors.login}</FormErrorMessage>
-          </FormControl>
-          <Text fontSize="sm" color="gray.500">
-            Se creará un usuario con este correo y se enviará una contraseña temporal. 
-            El veterinario deberá cambiarla en su primer inicio de sesión.
-          </Text>
-          <HStack width="100%" justify="space-between">
-            <Button onClick={handleBackStep} variant="ghost">Atrás</Button>
-          </HStack>
-        </VStack>
-      )}
-    </VStack>
-  );
-};
-
+/** Campos propios del rol veterinario (paso 2 del asistente y edición). */
+const CamposVeterinario = ({ formData, formErrors, handleChange }) => (
+  <>
+    <FormControl isRequired isInvalid={!!formErrors.especialidad}>
+      <FormLabel>Especialidad</FormLabel>
+      <Select name="especialidad" value={formData.especialidad} onChange={handleChange} placeholder="Seleccionar...">
+        {ESPECIALIDADES.map(esp => <option key={esp} value={esp}>{esp}</option>)}
+      </Select>
+      <FormErrorMessage>{formErrors.especialidad}</FormErrorMessage>
+    </FormControl>
+    <FormControl>
+      <FormLabel>Registro Profesional</FormLabel>
+      <Input name="registroProfesional" value={formData.registroProfesional} onChange={handleChange} />
+    </FormControl>
+  </>
+);
 
 // --- Componente Principal ---
 const AdminVeterinarios = () => {
@@ -149,8 +54,8 @@ const AdminVeterinarios = () => {
     try {
       const headers = { 'Authorization': `Bearer ${token}` };
       const [vetsRes, refugiosRes] = await Promise.all([
-        fetch('http://localhost:8181/api/veterinarios/getAll', { headers }),
-        fetch('http://localhost:8181/api/refugios/getAll', { headers })
+        fetch(`${API_URL}/veterinarios/getAll`, { headers }),
+        fetch(`${API_URL}/refugios/getAll`, { headers })
       ]);
       
       if (!vetsRes.ok || !refugiosRes.ok) throw new Error('Error al cargar datos');
@@ -193,35 +98,13 @@ const AdminVeterinarios = () => {
   };
 
   const validateForm = () => {
-    const errors = {};
-    const cedulaRegex = /^[0-9]+$/;
-    const nombreRegex = /^[a-zA-Z\sñÑáéíóúÁÉÍÓÚ]+$/;
-    
-    if (!formData.nombre) errors.nombre = 'El nombre es obligatorio.';
-    else if (!nombreRegex.test(formData.nombre)) errors.nombre = 'El nombre no puede contener números ni símbolos.';
-    else if (formData.nombre.trim().indexOf(' ') === -1) errors.nombre = 'Por favor, ingresa nombre y apellido.';
-    
-    if (!formData.cedula) errors.cedula = 'La cédula es obligatoria.';
-    else if (!cedulaRegex.test(formData.cedula)) errors.cedula = 'La cédula solo debe contener números.';
-    else if (formData.cedula.length < 7 || formData.cedula.length > 10) errors.cedula = 'La cédula debe tener entre 7 y 10 dígitos.';
-    
-    if (formData.telefono && (!cedulaRegex.test(formData.telefono) || formData.telefono.length !== 10)) {
-      errors.telefono = 'El teléfono debe ser numérico de 10 dígitos.';
-    }
-    if (!formData.idRefugio) errors.idRefugio = 'Debes seleccionar un refugio.';
+    const errors = validarEmpleado(formData, currentVet === null);
     if (!formData.especialidad) errors.especialidad = 'Debes seleccionar una especialidad.';
-    
-    if (currentVet === null && !formData.login) {
-       errors.login = 'El correo es obligatorio para crear el usuario.';
-    } else if (formData.login && !/\S+@\S+\.\S+/.test(formData.login)) {
-       errors.login = 'Correo inválido.';
-    }
 
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
 
-  // --- LÓGICA DE GUARDADO (dividida en 3 funciones) ---
   const handleSave = async () => {
     if (!validateForm()) {
       toast({ title: 'Datos incompletos', description: 'Por favor, corrige los errores en el formulario.', status: 'error' });
@@ -247,7 +130,7 @@ const AdminVeterinarios = () => {
         registroProfesional: formData.registroProfesional,
       };
 
-      const res = await fetch('http://localhost:8181/api/empleados/create-vet', {
+      const res = await fetch(`${API_URL}/empleados/create-vet`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify(payload)
@@ -278,7 +161,7 @@ const AdminVeterinarios = () => {
           usuario: currentVet.empleado.usuario
         };
 
-        const empRes = await fetch('http://localhost:8181/api/empleados/save', {
+        const empRes = await fetch(`${API_URL}/empleados/save`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
           body: JSON.stringify(empleadoPayload)
@@ -296,7 +179,7 @@ const AdminVeterinarios = () => {
           empleado: { idEmpleado: savedEmpleado.idEmpleado }
         };
 
-        const vetRes = await fetch('http://localhost:8181/api/veterinarios/save', {
+        const vetRes = await fetch(`${API_URL}/veterinarios/save`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
           body: JSON.stringify(vetPayload)
@@ -314,7 +197,6 @@ const AdminVeterinarios = () => {
         toast({ title: 'Error al actualizar', description: error.message, status: 'error' });
      }
   };
-  // --- FIN LÓGICA DE GUARDADO ---
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -370,41 +252,9 @@ const AdminVeterinarios = () => {
             {currentVet ? (
               <VStack spacing={4}>
                  <Heading size="sm" alignSelf="start">Datos Personales</Heading>
-                 <FormControl isRequired isInvalid={!!formErrors.nombre}>
-                   <FormLabel>Nombre Completo</FormLabel>
-                   <Input name="nombre" value={formData.nombre} onChange={handleChange} />
-                   <FormErrorMessage>{formErrors.nombre}</FormErrorMessage>
-                 </FormControl>
-                 <FormControl isRequired isInvalid={!!formErrors.cedula}>
-                   <FormLabel>Cédula</FormLabel>
-                   <Input name="cedula" value={formData.cedula} onChange={handleChange} inputMode="numeric" />
-                   <FormErrorMessage>{formErrors.cedula}</FormErrorMessage>
-                 </FormControl>
-                 <FormControl isInvalid={!!formErrors.telefono}>
-                   <FormLabel>Teléfono</FormLabel>
-                   <Input name="telefono" value={formData.telefono} onChange={handleChange} inputMode="numeric" />
-                   <FormErrorMessage>{formErrors.telefono}</FormErrorMessage>
-                 </FormControl>
-                 <FormControl isRequired isInvalid={!!formErrors.idRefugio}>
-                   <FormLabel>Refugio Asignado</FormLabel>
-                   <Select name="idRefugio" value={formData.idRefugio} onChange={handleChange} placeholder="Seleccionar...">
-                     {refugios.map(r => <option key={r.idRefugio} value={r.idRefugio}>{r.nombre}</option>)}
-                   </Select>
-                   <FormErrorMessage>{formErrors.idRefugio}</FormErrorMessage>
-                 </FormControl>
-                 
+                 <EmpleadoFields formData={formData} formErrors={formErrors} handleChange={handleChange} refugios={refugios} />
                  <Heading size="sm" alignSelf="start" pt={4}>Datos del Rol</Heading>
-                 <FormControl isRequired isInvalid={!!formErrors.especialidad}>
-                   <FormLabel>Especialidad</FormLabel>
-                   <Select name="especialidad" value={formData.especialidad} onChange={handleChange} placeholder="Seleccionar...">
-                     {especialidadesOptions.map(esp => <option key={esp} value={esp}>{esp}</option>)}
-                   </Select>
-                   <FormErrorMessage>{formErrors.especialidad}</FormErrorMessage>
-                 </FormControl>
-                 <FormControl>
-                   <FormLabel>Registro Profesional</FormLabel>
-                   <Input name="registroProfesional" value={formData.registroProfesional} onChange={handleChange} />
-                 </FormControl>
+                 <CamposVeterinario formData={formData} formErrors={formErrors} handleChange={handleChange} />
                  <FormControl isInvalid={!!formErrors.login}>
                    <FormLabel>Correo Electrónico (Login)</FormLabel>
                    <Input type="email" name="login" value={formData.login} onChange={handleChange} isDisabled={!!currentVet} />
@@ -413,12 +263,13 @@ const AdminVeterinarios = () => {
                  </FormControl>
               </VStack>
             ) : (
-              <VetFormWizard 
-                formData={formData} 
-                setFormData={setFormData} 
-                formErrors={formErrors} 
-                handleChange={handleChange} 
+              <PersonalFormWizard
+                formData={formData}
+                formErrors={formErrors}
+                handleChange={handleChange}
                 refugios={refugios}
+                nombreRol="veterinario"
+                camposRol={<CamposVeterinario formData={formData} formErrors={formErrors} handleChange={handleChange} />}
               />
             )}
           </ModalBody>

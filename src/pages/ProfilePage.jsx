@@ -12,6 +12,7 @@ import {
 } from '@chakra-ui/react';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext'; // Importar useAuth
+import { API_URL } from '../config/api';
 
 const ProfilePage = () => {
   const { token } = useAuth(); // Obtener el token del contexto
@@ -32,7 +33,7 @@ const ProfilePage = () => {
     const fetchProfile = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch('http://localhost:8181/api/adoptantes/me', {
+        const response = await fetch(`${API_URL}/adoptantes/me`, {
           headers: {
             'Authorization': `Bearer ${token}` // Enviar el token
           }
@@ -88,7 +89,7 @@ const ProfilePage = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch('http://localhost:8181/api/adoptantes/save', {
+      const response = await fetch(`${API_URL}/adoptantes/save`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
